@@ -105,6 +105,7 @@ details.adj .ctl{grid-template-columns:104px minmax(0,1fr) 72px}
 <body>
 <div class="top">
   <div><h1>Updated Post Aracı</h1><p>Şablonu seç, alanları doldur, 1080×1350 görseli indir.</p></div>
+  <button id="reload" type="button" class="mini" hidden>Yenile</button>
 </div>
 <main class="wrap">
   <section class="preview" aria-label="Önizleme">
@@ -817,6 +818,10 @@ window.__updatedTool = { ready: false, templates: function(){ return Object.keys
   set: function(t, vals){ if (!T[t]) return false; cur = t; sel = null; Object.keys(vals || {}).forEach(function(k){ if (k.charAt(0) !== '_' && k in state[t]) state[t][k] = String(vals[k]); }); buildTabs(); buildFields(); render(); return true; },
   setImage: function(t, url, key){ return loadImg(url).then(function(i){ images[t][key || 'img'] = i; render(); return true; }); },
   clearImage: function(t, key){ images[t][key || 'img'] = null; render(); } };
+
+/* ================= yenileme (ana ekrana eklenen sürüm için) ================= */
+(function(){ var b = document.getElementById('reload'); if (!b) return; if (window.claude) return; b.hidden = false;
+  b.addEventListener('click', function(){ save(); b.disabled = true; b.textContent = 'Yenileniyor…'; location.replace(location.pathname + '?v=' + Date.now()); }); })();
 
 /* ================= başlat ================= */
 Promise.all(Object.keys(A).map(function(k){ return loadImg(A[k]).then(function(i){ IMG[k] = i; }); })).then(function(){
