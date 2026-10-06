@@ -77,6 +77,8 @@ input[type=range]{width:100%}
 }
 .stage{position:relative;line-height:0}
 #ov{position:absolute;left:0;top:0;width:100%;height:100%;background:transparent;box-shadow:none;touch-action:none;cursor:grab}
+.ctl.sz{display:grid;grid-template-columns:96px minmax(0,1fr) 40px;align-items:center;gap:10px;font-size:13px;color:var(--muted)}
+.ctl.sz output{text-align:right;font-variant-numeric:tabular-nums}
 .chk{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;color:var(--muted)}
 .chk input{width:18px;height:18px}
 .bar{display:flex;align-items:center;justify-content:space-between;gap:10px}
@@ -105,7 +107,7 @@ details.adj .ctl{grid-template-columns:104px minmax(0,1fr) 72px}
 <body>
 <div class="top">
   <div><h1>Updated Post Aracı</h1><p>Şablonu seç, alanları doldur, 1080×1350 görseli indir.</p></div>
-  <button id="reload" type="button" class="mini" hidden>Yenile</button>
+  <div class="mv"><button id="theme" type="button" class="mini">Koyu tema</button><button id="reload" type="button" class="mini" hidden>Yenile</button></div>
 </div>
 <main class="wrap">
   <section class="preview" aria-label="Önizleme">
@@ -280,13 +282,13 @@ var T = {};
 
 T.cam = { group: 'Cam', name: 'Haber kapağı (ürün görselli)', extras: { t1: CARD, t2: CARD }, images: [{ k: 'img', l: 'Ürün görseli', help: 'Arka plansız PNG en iyi sonucu verir.', sample: 'phone' }],
   fields: [ { k: 'cat', l: 'Kategori', d: 'Haber', max: 18 }, { k: 'h1', l: 'Başlık, 1. satır', d: 'iPhone 18 Pro Max.', max: 22 }, { k: 'h2', l: 'Başlık, 2. satır (renkli)', d: '198.000 TL.', max: 22 }, { k: 'sub', l: 'Alt metin', d: 'Türkiye fiyatı açıklandı. Rekor bir etiket.', max: 80 },
-    { k: 't1l', l: 'Ön kart: etiket', d: 'Türkiye fiyatı', max: 22 }, { k: 't1v', l: 'Ön kart: değer', d: '198.000 TL', max: 14 }, { k: 't2l', l: 'Arka kart: etiket', d: 'Updated puanı', max: 16 }, { k: 't2v', l: 'Arka kart: değer', d: '86', max: 9 } ],
+    { k: 't1l', l: 'Kart 1: etiket', d: 'Türkiye fiyatı', max: 22, sz: ['t1', 'ls', 26, 14, 64] }, { k: 't1v', l: 'Kart 1: değer', d: '198.000 TL', max: 14, sz: ['t1', 'vs', 54, 20, 160] }, { k: 't2l', l: 'Kart 2: etiket', d: 'Updated puanı', max: 16, sz: ['t2', 'ls', 26, 14, 64] }, { k: 't2v', l: 'Kart 2: değer', d: '86', max: 9, sz: ['t2', 'vs', 54, 20, 160] } ],
   bg: function(){ bgDark(CAMORBS); },
   layers: function(s, im, ad){
     var s1 = s.h1 ? fit(s.h1, 700, 88, 952, 36, F, -0.035) : 0, y1 = 312, y2 = y1 + Math.round(s1*1.06), s2 = s.h2 ? fit(s.h2, 700, 88, 952, 36, F, -0.035) : 0, y3 = y2 + Math.round(s2*0.5) + 44; track(0);
-    return [ L('t2', 'Arka kart', [790, 735], function(){ tile(700, 660, ad('t2'), s.t2l, s.t2v); }, ['t2l', 't2v']),
+    return [ L('t2', 'Kart 2', [790, 735], function(){ tile(700, 660, ad('t2'), s.t2l, s.t2v); }, ['t2l', 't2v']),
       L('img', 'Ürün görseli', [540, 1110], function(){ cutout(im.img, 210, 560, 660, 1100, 'rgba(37,99,235,0.65)'); }),
-      L('t1', 'Ön kart', [230, 1165], function(){ tile(84, 1090, ad('t1'), s.t1l, s.t1v); }, ['t1l', 't1v']),
+      L('t1', 'Kart 1', [230, 1165], function(){ tile(84, 1090, ad('t1'), s.t1l, s.t1v); }, ['t1l', 't1v']),
       LOGO(), L('cat', 'Kategori', [540, 180], function(){ pill(s.cat, 540, 180); }),
       L('h1', 'Başlık 1', [540, y1 - 30], function(){ headline(s.h1, 540, y1, 700, 88, 952, '#FFFFFF'); }),
       L('h2', 'Başlık 2', [540, y2 - 30], function(){ headline(s.h2, 540, y2, 700, 88, 952, 'grad'); }),
@@ -310,7 +312,7 @@ T.camtext = { group: 'Cam', name: 'Haber kapağı (görselsiz)', images: [],
   } };
 
 T.cammadde = { group: 'Cam', name: 'Kaydırmalı: madde slaytı', extras: { img: ['iz', 'ix', 'iy'], tile: CARD }, images: [{ k: 'img', l: 'Madde görseli', help: 'Kartın içine oturur; kadrajı Öğeler bölümünden ayarla.', sample: 'camera' }],
-  fields: [ { k: 'eye', l: 'Üst etiket', d: 'Kamera', max: 20 }, { k: 'h1', l: 'Başlık', d: 'Daha büyük sensör.', max: 24 }, { k: 'body', l: 'Açıklama', type: 'area', d: 'Ana kamera düşük ışıkta daha temiz sonuç veriyor. Zoom tarafında değişiklik yok.' }, { k: 'tl', l: 'Kart: etiket', d: 'Ana kamera', max: 18 }, { k: 'tv', l: 'Kart: değer', d: '48 MP', max: 12 } ],
+  fields: [ { k: 'eye', l: 'Üst etiket', d: 'Kamera', max: 20 }, { k: 'h1', l: 'Başlık', d: 'Daha büyük sensör.', max: 24 }, { k: 'body', l: 'Açıklama', type: 'area', d: 'Ana kamera düşük ışıkta daha temiz sonuç veriyor. Zoom tarafında değişiklik yok.' }, { k: 'tl', l: 'Kart: etiket', d: 'Ana kamera', max: 18, sz: ['tile', 'ls', 26, 14, 64] }, { k: 'tv', l: 'Kart: değer', d: '48 MP', max: 12, sz: ['tile', 'vs', 54, 20, 160] } ],
   bg: function(){ bgDark([[160, 700, 600, 0, 0.5], [1000, 980, 460, 1, 0.42]]); },
   layers: function(s, im, ad){ return [
     L('img', 'Görsel kartı', [540, 480], function(){ photoCard(im.img, 140, 180, 800, 600, 56, ad('img')); }),
@@ -697,7 +699,8 @@ var pct = function(v){ return Math.round(v*100) + '%'; }, pxf = function(v){ ret
 var SL = { s: { l: 'Boyut', min: 0.3, max: 3, step: 0.01, def: 1, fmt: pct }, x: { l: 'Yatay', min: -700, max: 700, step: 2, def: 0, fmt: pxf }, y: { l: 'Dikey', min: -900, max: 900, step: 2, def: 0, fmt: pxf }, r: { l: 'Açı', min: -180, max: 180, step: 1, def: 0, fmt: deg },
   w: { l: 'Kart genişliği', min: 0, max: 952, step: 4, def: 0, fmt: auto }, h: { l: 'Kart yüksekliği', min: 0, max: 900, step: 4, def: 0, fmt: auto }, ls: { l: 'Etiket yazısı', min: 0, max: 64, step: 1, def: 0, fmt: auto }, vs: { l: 'Değer yazısı', min: 0, max: 160, step: 1, def: 0, fmt: auto },
   iz: { l: 'İç büyütme', min: 1, max: 4, step: 0.01, def: 1, fmt: pct }, ix: { l: 'İç yatay', min: -100, max: 100, step: 1, def: 0, fmt: pxf }, iy: { l: 'İç dikey', min: -100, max: 100, step: 1, def: 0, fmt: pxf } };
-function sliders(target, keys){
+function sliders(target, keys, hidden){
+  hidden = hidden || [];
   var box = el('div', { 'class': 'sl' }), outs = [];
   keys.forEach(function(k){ var c = SL[k], rid = 'r' + Math.random().toString(36).slice(2);
     var r = el('input', { type: 'range', id: rid, min: c.min, max: c.max, step: c.step }); r.value = target[k];
@@ -706,7 +709,7 @@ function sliders(target, keys){
     outs.push(function(){ r.value = target[k]; show(); });
     box.appendChild(el('div', { 'class': 'ctl' }, [el('label', { 'for': rid, text: c.l }), r, o])); });
   var rs = el('button', { type: 'button', text: 'Sıfırla' });
-  rs.addEventListener('click', function(){ touch(); keys.forEach(function(k){ target[k] = SL[k].def; }); outs.forEach(function(f){ f(); }); save(); draw(); });
+  rs.addEventListener('click', function(){ touch(); keys.concat(hidden).forEach(function(k){ target[k] = SL[k].def; }); outs.forEach(function(f){ f(); }); save(); draw(); if (hidden.length) buildFields(); });
   box.appendChild(rs); return box;
 }
 var openLayers = {}, sel = null, hist = [], redo = [], lastTouch = 0, lastId = null;
@@ -734,7 +737,12 @@ function buildFields(){
     input.value = s[f.k]; var cnt = f.max ? el('span', { 'class': 'cnt' }) : null;
     function upd(){ if (cnt){ var n = input.value.length; cnt.textContent = n + ' / ' + f.max; cnt.className = 'cnt' + (n > f.max ? ' over' : ''); } }
     input.addEventListener('input', function(){ touch('f:' + f.k); s[f.k] = input.value; upd(); save(); draw(); }); upd();
-    return el('div', { 'class': 'f' }, [el('div', { 'class': 'row' }, [el('label', { 'for': id, text: f.l }), cnt]), input, f.help ? el('div', { 'class': 'help', text: f.help }) : null]); }
+    var szRow = null;
+    if (f.sz && s._adj[f.sz[0]]){ var tg = s._adj[f.sz[0]], sk = f.sz[1], sid = id + '-sz', sr = el('input', { type: 'range', id: sid, min: f.sz[3], max: f.sz[4], step: 1 }), so = el('output', { 'for': sid });
+      sr.value = tg[sk] > 0 ? tg[sk] : f.sz[2]; so.textContent = String(sr.value);
+      sr.addEventListener('input', function(){ touch('sz:' + sid); tg[sk] = parseFloat(sr.value); so.textContent = String(sr.value); save(); draw(); });
+      szRow = el('div', { 'class': 'ctl sz' }, [el('label', { 'for': sid, text: 'Yazı boyutu' }), sr, so]); }
+    return el('div', { 'class': 'f' }, [el('div', { 'class': 'row' }, [el('label', { 'for': id, text: f.l }), cnt]), input, szRow, f.help ? el('div', { 'class': 'help', text: f.help }) : null]); }
   function imageEl(im){ var id = 'f-' + t + '-' + im.k, file = el('input', { type: 'file', accept: 'image/*', id: id });
     file.addEventListener('change', function(){ var fl = file.files && file.files[0]; if (!fl) return; loadImg(URL.createObjectURL(fl)).then(function(i){ images[t][im.k] = i; draw(); msg(''); }).catch(function(){ msg('Görsel açılamadı; başka bir dosya dene.'); }); });
     var rm = el('button', { type: 'button', 'class': 'mini', text: 'Görseli kaldır' }); rm.addEventListener('click', function(){ images[t][im.k] = null; file.value = ''; draw(); });
@@ -753,7 +761,8 @@ function buildFields(){
     if (m.k === 'logo' || m.k === 'mast'){ var lid = 'f-' + t + '-logo', ls = el('select', { id: lid }); LOGOS.forEach(function(o){ ls.appendChild(el('option', { value: o[0], text: o[1] })); }); ls.value = s._logo || defLogo(t); ls.addEventListener('change', function(){ touch(); s._logo = ls.value; save(); draw(); }); kids.push(el('div', { 'class': 'f' }, [el('label', { 'for': lid, text: 'Logo çeşidi' }), ls])); }
     var d = el('details', { 'class': 'adj' }, [el('summary', { text: 'Boyut, konum ve açı' })]); if (openLayers[t + m.k]) d.open = true;
     d.addEventListener('toggle', function(){ openLayers[t + m.k] = d.open; });
-    d.appendChild(sliders(s._adj[m.k], ['s', 'x', 'y', 'r'].concat((T[t].extras || {})[m.k] || []))); kids.push(d);
+    var inl = T[t].fields.filter(function(f){ return f.sz && f.sz[0] === m.k; }).map(function(f){ return f.sz[1]; }), ex = ((T[t].extras || {})[m.k] || []);
+    d.appendChild(sliders(s._adj[m.k], ['s', 'x', 'y', 'r'].concat(ex.filter(function(k){ return inl.indexOf(k) < 0; })), ex.filter(function(k){ return inl.indexOf(k) >= 0; }))); kids.push(d);
     var card = el('div', { 'class': 'mod' + (sel === m.k ? ' sel' : ''), 'data-k': m.k }, kids);
     card.addEventListener('pointerdown', function(){ select(m.k, m.l); }); card.addEventListener('focusin', function(){ select(m.k, m.l); });
     box.appendChild(card);
@@ -818,6 +827,16 @@ window.__updatedTool = { ready: false, templates: function(){ return Object.keys
   set: function(t, vals){ if (!T[t]) return false; cur = t; sel = null; Object.keys(vals || {}).forEach(function(k){ if (k.charAt(0) !== '_' && k in state[t]) state[t][k] = String(vals[k]); }); buildTabs(); buildFields(); render(); return true; },
   setImage: function(t, url, key){ return loadImg(url).then(function(i){ images[t][key || 'img'] = i; render(); return true; }); },
   clearImage: function(t, key){ images[t][key || 'img'] = null; render(); } };
+
+/* ================= açık / koyu tema ================= */
+(function(){ var b = document.getElementById('theme'), root = document.documentElement; if (!b) return;
+  function sys(){ return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; }
+  function now(){ return root.getAttribute('data-theme') || sys(); }
+  function label(){ b.textContent = now() === 'dark' ? 'Açık tema' : 'Koyu tema'; }
+  try { var sv = localStorage.getItem('updated-tema'); if (sv === 'dark' || sv === 'light') root.setAttribute('data-theme', sv); } catch(e){}
+  label();
+  b.addEventListener('click', function(){ var n = now() === 'dark' ? 'light' : 'dark'; root.setAttribute('data-theme', n); try { localStorage.setItem('updated-tema', n); } catch(e){} label(); });
+})();
 
 /* ================= yenileme (ana ekrana eklenen sürüm için) ================= */
 (function(){ var b = document.getElementById('reload'); if (!b) return; if (window.claude) return; b.hidden = false;
