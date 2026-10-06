@@ -79,6 +79,37 @@ input[type=range]{width:100%}
 #ov{position:absolute;left:0;top:0;width:100%;height:100%;background:transparent;box-shadow:none;touch-action:none;cursor:grab}
 .ctl.sz{display:grid;grid-template-columns:96px minmax(0,1fr) 40px;align-items:center;gap:10px;font-size:13px;color:var(--muted)}
 .ctl.sz output{text-align:right;font-variant-numeric:tabular-nums}
+.side{display:flex;flex-direction:column;gap:16px;min-width:0}
+.sechd{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.sechd h2{margin:0;font-size:17px;font-weight:800;letter-spacing:-0.01em}
+.tools{display:flex;flex-wrap:wrap;gap:8px}
+.note{border:1px solid var(--warn);border-radius:12px;padding:12px 14px;font-size:14px;display:flex;flex-direction:column;gap:8px}
+.note[hidden]{display:none}
+.note ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px;color:var(--muted)}
+button.icon{width:34px;height:34px;padding:0;display:inline-grid;place-items:center;border-radius:9px}
+button.icon.big{width:44px;height:44px;border-radius:10px}
+button.icon svg,.ico svg{width:18px;height:18px;display:block}
+button.icon.big svg{width:22px;height:22px}
+button.icon[aria-expanded="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.ico{display:inline-grid;place-items:center}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums;margin-right:2px}
+.badge .ico svg{width:15px;height:15px}
+.adjp{border-top:1px solid var(--line);padding-top:10px}
+.adjp[hidden]{display:none}
+.adjp .ctl{display:grid;grid-template-columns:104px minmax(0,1fr) 72px;align-items:center;gap:10px;font-size:13px;color:var(--muted);margin-top:6px}
+.adjp output{font-variant-numeric:tabular-nums;text-align:right}
+.adjp .sl > button{margin-top:10px;padding:6px 12px;font-size:13px}
+.row.end{justify-content:flex-end}
+.seg{display:flex;gap:6px}
+.filebtn{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:10px;padding:5px 10px;font-size:12px;font-weight:600;cursor:pointer;background:var(--surface);position:relative;overflow:hidden}
+.filebtn input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.filebtn:focus-within{outline:3px solid var(--accent);outline-offset:2px}
+.saverow{display:flex;gap:8px;flex-wrap:wrap}.saverow input{flex:1;min-width:0}
+.savelist{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.saveitem{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:8px 10px;border:1px solid var(--line);border-radius:10px}
+.saveitem .nm{font-size:14px;font-weight:700}
+.saveitem .mv{flex-wrap:wrap}
+details.adj .saveitem button,details.adj .saverow button{margin-top:0}
 .chk{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;color:var(--muted)}
 .chk input{width:18px;height:18px}
 .bar{display:flex;align-items:center;justify-content:space-between;gap:10px}
@@ -92,6 +123,7 @@ input[type=range]{width:100%}
 .mod .mv{align-items:center}
 button.mini{padding:5px 10px;font-size:12px}
 button:disabled{opacity:.4;cursor:default}
+button.warn{background:var(--warn);border-color:var(--warn);color:#fff}
 button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
 details.adj > summary{display:block;list-style:none}
 details.adj > summary::-webkit-details-marker{display:none}
@@ -114,23 +146,47 @@ details.adj .ctl{grid-template-columns:104px minmax(0,1fr) 72px}
     <div class="stage"><canvas id="cv" width="1080" height="1350" role="img" aria-label="Post önizlemesi"></canvas><canvas id="ov" width="1080" height="1350" aria-hidden="true"></canvas></div>
     <div class="actions">
       <button class="primary" id="dl" type="button">PNG indir</button>
-      <button id="undo" type="button" disabled>Geri al</button>
-      <button id="redo" type="button" disabled>İleri al</button>
-      <button id="undoall" type="button" disabled>Tümünü geri al</button>
+      <button id="undo" type="button" class="icon big" disabled aria-label="Geri al" title="Geri al"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg></button>
+      <button id="redo" type="button" class="icon big" disabled aria-label="İleri al" title="İleri al"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg></button>
+      <button id="undoall" type="button" class="mini" disabled>Tümünü geri al</button>
       <span id="msg" role="status" aria-live="polite"></span>
     </div>
     <div id="hint" class="hint"></div>
   </section>
-  <section class="panel" aria-label="İçerik">
+  <div class="side">
+  <section class="panel" aria-label="Şablon">
+    <div class="sechd"><h2>Şablon</h2></div>
+    <div class="f"><select id="tpl" aria-label="Şablon seç"></select></div>
+    <div class="tools">
+      <button id="carrybtn" type="button" class="mini" disabled>Önceki şablonun içeriğini getir</button>
+      <button id="reset" type="button" class="mini">Bu şablonu sıfırla</button>
+      <button id="resetall" type="button" class="mini">Tüm şablonları sıfırla</button>
+    </div>
+    <div id="resetnote" class="note" role="alert" hidden>
+      <strong>29 şablonun hepsi ilk hâline dönecek.</strong>
+      <ul>
+        <li>Silinecek: tüm şablonlarda yazdığın metinler, konum, boyut, açı ve katman ayarları, logo seçimleri.</li>
+        <li>Geri gelmeyecek: yüklediğin fotoğraflar. Yeniden yüklemen gerekir.</li>
+        <li>Kalacak: "Kayıtlı düzenler" altındaki kayıtların.</li>
+        <li>Metin ve ayarları her şablonda "Geri al" ile tek tek geri getirebilirsin.</li>
+      </ul>
+      <span>Devam etmek için turuncu düğmeye bas. <button id="resetcancel" type="button" class="mini">Vazgeç</button></span>
+    </div>
+    <details class="adj" id="saves"><summary>Kayıtlı düzenler</summary>
+      <div class="f" style="margin-top:8px"><label for="save-name">Şu anki düzeni kaydet</label><div class="saverow"><input type="text" id="save-name" maxlength="40" placeholder="Örnek: Fiyat haberi düzeni" autocomplete="off"><button id="save-go" type="button">Kaydet</button></div><div class="help">Konum, boyut, açı, katman sırası, logo ve yazılar bu şablon için saklanır.</div></div>
+      <div id="save-list" class="savelist"></div>
+      <div class="f" style="margin-top:12px"><span class="lab">Cihazlar arası taşıma</span><div class="saverow"><button id="save-exp" type="button" class="mini">Tüm kayıtları dışa aktar</button><label class="filebtn">İçe aktar<input type="file" id="save-imp" accept=".json,application/json"></label></div><div class="help">Dışa aktarılan dosyayı diğer cihazında bu bölümden içe aktar.</div></div><div id="save-msg" class="help" role="status" aria-live="polite" style="margin-top:8px"></div></details>
     <details class="adj imp"><summary>Otomasyondan gelen postu aç</summary>
       <div class="f" style="margin-top:8px"><label for="imp-file">Telegram'a gelen dosya (.updated.json)</label><input type="file" id="imp-file" accept=".json,application/json"><div class="help">Tüm slaytlar ve haber fotoğrafı birlikte açılır.</div><div class="mv" id="imp-slides" style="flex-wrap:wrap"></div></div>
       <div class="f" style="margin-top:10px"><label for="imp-in">Ya da tek slayt kodu</label><textarea id="imp-in" spellcheck="false" style="min-height:56px" placeholder="UPD1:..."></textarea><div class="actions"><button id="imp-go" type="button" class="mini">Kodu aç</button></div></div>
       <div id="imp-msg" class="help" role="status" aria-live="polite" style="margin-top:8px"></div></details>
-    <div class="f"><label for="tpl">Şablon</label><select id="tpl"></select><label class="chk"><input type="checkbox" id="carry" checked> Şablon değişince içeriği ve fotoğrafı taşı</label></div>
-    <div class="bar"><span class="help">Her kartta "Boyut, konum ve açı" açılır.</span><button id="collapse" type="button" class="mini">Açık ayarları kapat</button></div>
-    <div class="fields" id="fields"></div>
-    <div class="foot"><button id="reset" type="button">Örnek içeriğe dön</button><span class="help" style="font-size:13px;color:var(--muted)">Yazdıkların bu tarayıcıda saklanır; görseller saklanmaz.</span></div>
   </section>
+  <section class="panel" aria-label="Öğeler">
+    <div class="sechd"><h2>Öğeler</h2><button id="collapse" type="button" class="mini">Ayarları kapat</button></div>
+    <div class="fields" id="fields"></div>
+    <div class="help">Yazdıkların bu tarayıcıda saklanır; görseller saklanmaz.</div>
+  </section>
+  </div>
 </main>
 <script>
 (function(){
@@ -247,12 +303,13 @@ function tile(x, y, a, label, value){
 }
 /* Yuvarlak köşeli fotoğraf kartı; fotoğraf kartın içinde ayrıca kadrajlanabilir. */
 function photoCard(img, x, y, w, h, r, a){
+  var w2 = a.w > 0 ? a.w : w, h2 = a.h > 0 ? a.h : h; x += (w - w2)/2; y += (h - h2)/2; w = w2; h = h2;
   shadowOf(function(){ rr(x, y, w, h, r); }, 'rgba(0,0,0,0.6)', 80, 50);
   ctx.save(); rr(x, y, w, h, r); ctx.clip();
   var g = ctx.createRadialGradient(x + w*0.6, y + h*0.3, 0, x + w*0.6, y + h*0.3, Math.max(w, h)); g.addColorStop(0, '#4C7DF5'); g.addColorStop(0.5, '#1A3BA8'); g.addColorStop(1, '#0A1238'); ctx.fillStyle = g; ctx.fillRect(x, y, w, h);
-  if (img) drawFit(img, x, y, w, h, true, a.iz || 1, a.ix || 0, a.iy || 0);
+  if (img){ var sc = Math.max(w/img.width, h/img.height)*(a.iz || 1), dw = img.width*sc, dh = img.height*sc; ctx.save(); ctx.translate(x + w/2 + (a.ix || 0)/100*w/2, y + h/2 + (a.iy || 0)/100*h/2); ctx.rotate((a.ir || 0)*Math.PI/180); ctx.drawImage(img, -dw/2, -dh/2, dw, dh); ctx.restore(); }
   ctx.restore();
-  ctx.save(); rr(x+1, y+1, w-2, h-2, r-1); ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(255,255,255,0.22)'; ctx.stroke(); ctx.restore();
+  ctx.save(); rr(x+1, y+1, w-2, h-2, Math.max(0, r-1)); ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(255,255,255,0.22)'; ctx.stroke(); ctx.restore();
 }
 function cutout(img, bx, by, bw, bh, glow){ if (!img) return; ctx.save(); if (!measuring){ ctx.shadowColor = glow; ctx.shadowBlur = 70*scaleOf(); ctx.shadowOffsetY = 30*scaleOf(); } drawFit(img, bx, by, bw, bh, false); ctx.restore(); }
 var LOGOS = [['up-white', 'UP, beyaz'], ['up-black', 'UP, siyah'], ['up-blue', 'UP, mavi'], ['mark-solid-white', 'UPDATED, dolu beyaz'], ['mark-solid-black', 'UPDATED, dolu siyah'], ['mark-solid-blue', 'UPDATED, dolu mavi'], ['mark-outline-white', 'UPDATED, çizgili beyaz'], ['mark-outline-black', 'UPDATED, çizgili siyah'], ['social-black', 'Kare rozet, siyah zemin'], ['social-white', 'Kare rozet, beyaz zemin'], ['social-blue', 'Kare rozet, mavi zemin']];
@@ -311,7 +368,7 @@ T.camtext = { group: 'Cam', name: 'Haber kapağı (görselsiz)', images: [],
       L('foot', 'Alt yazı', [540, 1270], function(){ if (s.foot){ ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic'; font(500, 24, M); track(1); ctx.fillStyle = '#9AA1AC'; ctx.fillText(s.foot, 540, 1278); track(0); } }) ];
   } };
 
-T.cammadde = { group: 'Cam', name: 'Kaydırmalı: madde slaytı', extras: { img: ['iz', 'ix', 'iy'], tile: CARD }, images: [{ k: 'img', l: 'Madde görseli', help: 'Kartın içine oturur; kadrajı Öğeler bölümünden ayarla.', sample: 'camera' }],
+T.cammadde = { group: 'Cam', name: 'Kaydırmalı: madde slaytı', inner: { img: [800, 600] }, extras: { img: ['w', 'h', 'iz', 'ix', 'iy', 'ir'], tile: CARD }, images: [{ k: 'img', l: 'Madde görseli', help: 'Kartın içine oturur; kadrajı Öğeler bölümünden ayarla.', sample: 'camera' }],
   fields: [ { k: 'eye', l: 'Üst etiket', d: 'Kamera', max: 20 }, { k: 'h1', l: 'Başlık', d: 'Daha büyük sensör.', max: 24 }, { k: 'body', l: 'Açıklama', type: 'area', d: 'Ana kamera düşük ışıkta daha temiz sonuç veriyor. Zoom tarafında değişiklik yok.' }, { k: 'tl', l: 'Kart: etiket', d: 'Ana kamera', max: 18, sz: ['tile', 'ls', 26, 14, 64] }, { k: 'tv', l: 'Kart: değer', d: '48 MP', max: 12, sz: ['tile', 'vs', 54, 20, 160] } ],
   bg: function(){ bgDark([[160, 700, 600, 0, 0.5], [1000, 980, 460, 1, 0.42]]); },
   layers: function(s, im, ad){ return [
@@ -321,7 +378,7 @@ T.cammadde = { group: 'Cam', name: 'Kaydırmalı: madde slaytı', extras: { img:
     L('h1', 'Başlık', [540, 950], function(){ headline(s.h1, 540, 980, 700, 76, 952, '#FFFFFF'); }),
     L('body', 'Açıklama', [540, 1090], function(){ para(s.body, 540, 1056, 400, 32, 820, 4, 44, '#A9B0BC'); }) ]; } };
 
-T.camozet = { group: 'Cam', name: 'Kaydırmalı: özet slaytı', extras: { img: ['iz', 'ix', 'iy'], tiles: ['ls', 'vs'] }, images: [{ k: 'img', l: 'Üst görsel', help: 'Geniş kartın içine oturur.', sample: 'scene' }],
+T.camozet = { group: 'Cam', name: 'Kaydırmalı: özet slaytı', inner: { img: [952, 430] }, extras: { img: ['w', 'h', 'iz', 'ix', 'iy', 'ir'], tiles: ['ls', 'vs'] }, images: [{ k: 'img', l: 'Üst görsel', help: 'Geniş kartın içine oturur.', sample: 'scene' }],
   fields: [ { k: 'h1', l: 'Başlık', d: 'iPhone 18 Pro Max.', max: 24 }, { k: 'h1b', l: 'Başlık devamı (soluk)', d: 'Kısaca.', max: 14 }, { k: 'badge', l: 'Görsel üstü etiket', d: 'Türkiye\'de satışta', max: 26 },
     { k: 'facts', l: 'Dört kutu', type: 'area', help: 'Her satır: "Etiket | Değer". Tam dört satır.', d: 'Başlangıç fiyatı | 198.000 TL\nUpdated puanı | 86\nAna kamera | 48 MP\nEkran | 6,9 inç' } ],
   bg: function(){ bgDark([[140, 900, 620, 0, 0.55], [1000, 1120, 460, 1, 0.45]]); },
@@ -349,7 +406,7 @@ T.camyorum = { group: 'Cam', name: 'Tek post: yorum', extras: { panel: ['w', 'h'
       L('body', 'Açıklama', [540, y3 + 30], function(){ para(s.body, 540, y3, 400, 32, 700, 4, 44, '#C9CED6'); }),
       L('src', 'Kaynak etiketi', [540, 1147], function(){ pill(s.src, 540, 1147, 26); }), LOGO() ]; } };
 
-T.campuan = { group: 'Cam', name: 'İnceleme puanı', extras: { img: ['iz', 'ix', 'iy'], stats: ['ls', 'vs'] }, images: [{ k: 'img', l: 'Ürün görseli', help: 'Alttaki karta oturur.', sample: 'scene' }],
+T.campuan = { group: 'Cam', name: 'İnceleme puanı', inner: { img: [800, 500] }, extras: { img: ['w', 'h', 'iz', 'ix', 'iy', 'ir'], stats: ['ls', 'vs'] }, images: [{ k: 'img', l: 'Ürün görseli', help: 'Alttaki karta oturur.', sample: 'scene' }],
   fields: [ { k: 'cat', l: 'Kategori', d: 'İnceleme', max: 18 }, { k: 'name', l: 'Ürün adı', d: 'iPhone 18 Pro Max.', max: 26 }, { k: 'score', l: 'Puan', d: '86', max: 3 }, { k: 'of', l: 'Puan altı yazı', d: '100 üzerinden', max: 24 },
     { k: 'stats', l: 'Alt puanlar', type: 'area', help: 'Her satır: "Etiket | Puan". En fazla 3 satır.', d: 'Kamera | 92\nPerformans | 95\nTürkiye\'de sahiplik | 58' }, { k: 'verdict', l: 'Karar cümlesi', d: 'Çok iyi bir telefon, ama bu fiyata önermek zor.', max: 90 } ],
   bg: function(){ bgDark([[160, 620, 620, 0, 0.55], [1000, 900, 480, 1, 0.45]]); },
@@ -598,7 +655,7 @@ T.dergivs = { group: 'Dergi', name: 'Karşılaştırma', fixed: [{ k: 'imga', l:
 
 /* ================= durum ================= */
 var KEY = 'updated-post-araci-v4';
-var XDEF = { w: 0, h: 0, ls: 0, vs: 0, iz: 1, ix: 0, iy: 0 };
+var XDEF = { w: 0, h: 0, ls: 0, vs: 0, iz: 1, ix: 0, iy: 0, ir: 0 };
 var state = {}, images = {}, cur = 'cam';
 function blankAdj(t, k){ var a = { s: 1, x: 0, y: 0, r: 0 }; ((T[t].extras || {})[k] || []).forEach(function(e){ a[e] = XDEF[e]; }); return a; }
 function probe(t){ var s = {}; T[t].fields.forEach(function(f){ s[f.k] = f.d || ''; }); var im = {}; return T[t].layers(s, im, function(k){ return blankAdj(t, k); }); }
@@ -644,7 +701,8 @@ function measure(keys){
   } finally { ctx = realCtx; cv = realCv; measuring = false; track(0); }
   return out;
 }
-var ov = document.getElementById('ov'), octx = ov.getContext('2d'), selBox = null;
+var ov = document.getElementById('ov'), octx = ov.getContext('2d'), selBox = null, selIn = false;
+function hasInner(k){ return !!(k && T[cur].inner && T[cur].inner[k] && (images[cur] || {})[k]); }
 function drawOverlay(){
   octx.clearRect(0, 0, W, H); selBox = null;
   if (!sel || !state[cur]._adj[sel]) return;
@@ -652,9 +710,10 @@ function drawOverlay(){
   if (fx){ var bx = fx.box || [0, 0, W, H], fa = state[cur]._adj[sel]; b = { x: bx[0] + 30, y: bx[1] + 64, w: bx[2] - 60, h: bx[3] - 94, ax: bx[0] + bx[2]/2 + fa.x, ay: bx[1] + bx[3]/2 + fa.y, l: fx.l }; }
   else { if (state[cur]._order.indexOf(sel) < 0) return; b = measure([sel])[sel]; }
   if (!b) return; selBox = b;
+  var inn = selIn && hasInner(sel), col = inn ? '#FF6B1A' : '#2563EB';
   octx.save(); octx.lineWidth = 4; octx.strokeStyle = '#FFFFFF'; octx.setLineDash([]); octx.strokeRect(b.x - 8, b.y - 8, b.w + 16, b.h + 16);
-  octx.lineWidth = 2; octx.strokeStyle = '#2563EB'; octx.strokeRect(b.x - 8, b.y - 8, b.w + 16, b.h + 16);
-  handles(b).forEach(function(h){ octx.beginPath(); if (h.kind === 'rot') octx.arc(h.x, h.y, 16, 0, Math.PI*2); else octx.rect(h.x - 14, h.y - 14, 28, 28); octx.fillStyle = h.kind === 'rot' ? '#FF6B1A' : '#2563EB'; octx.fill(); octx.lineWidth = 4; octx.strokeStyle = '#FFFFFF'; octx.stroke(); });
+  octx.lineWidth = 2; octx.strokeStyle = col; if (inn) octx.setLineDash([14, 10]); octx.strokeRect(b.x - 8, b.y - 8, b.w + 16, b.h + 16); octx.setLineDash([]);
+  handles(b).forEach(function(h){ octx.beginPath(); if (h.kind === 'rot') octx.arc(h.x, h.y, 16, 0, Math.PI*2); else octx.rect(h.x - 14, h.y - 14, 28, 28); octx.fillStyle = h.kind === 'rot' ? (inn ? '#2563EB' : '#FF6B1A') : col; octx.fill(); octx.lineWidth = 4; octx.strokeStyle = '#FFFFFF'; octx.stroke(); });
   octx.restore();
 }
 function fixedOf(k){ return (T[cur].fixed || []).filter(function(f){ return f.k === k; })[0] || null; }
@@ -666,6 +725,9 @@ function draw(){ if (raf) return; raf = requestAnimationFrame(function(){ raf = 
 var msgEl = document.getElementById('msg');
 function msg(t){ msgEl.textContent = t; }
 function el(tag, attrs, kids){ var e = document.createElement(tag); if (attrs) Object.keys(attrs).forEach(function(k){ if (k === 'text') e.textContent = attrs[k]; else if (k === 'class') e.className = attrs[k]; else e.setAttribute(k, attrs[k]); }); (kids || []).forEach(function(c){ if (c) e.appendChild(c); }); return e; }
+var ICON = { up: '<path d="M12 19V5M6 11l6-6 6 6"/>', down: '<path d="M12 5v14M6 13l6 6 6-6"/>', gear: '<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>', layer: '<path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/>' };
+function ico(name){ var sp = document.createElement('span'); sp.className = 'ico'; sp.setAttribute('aria-hidden', 'true'); sp.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + ICON[name] + '</svg>'; return sp; }
+function iconBtn(name, label){ var b = el('button', { type: 'button', 'class': 'icon', 'aria-label': label, title: label }); b.appendChild(ico(name)); return b; }
 var tplSel = document.getElementById('tpl');
 var GORDER = ['Cam', 'Vizör', 'Fiş', 'Dergi'], TORDER = ['Haber kapağı', 'Kaydırmalı: madde', 'Kaydırmalı: özet', 'Tek post: liste', 'Tek post: yorum', 'İnceleme puanı', 'Karşılaştırma'];
 function rank(t){ var n = T[t].name, r = 9; TORDER.forEach(function(p, i){ if (n.indexOf(p) === 0 && r === 9) r = i; }); return GORDER.indexOf(T[t].group)*100 + r*10; }
@@ -682,7 +744,7 @@ function harvest(t){ var lc = lastCarried[t] || {};
   var im = images[t] || {}, pic = im.img || im.photo || im.imga; if (pic) poolImg = pic; }
 function carry(from, to){
   if (from === to || !T[from] || !T[to]) return 0;
-  harvest(from); var n = 0, lc = lastCarried[to] = {};
+  pool = {}; poolImg = null; lastCarried[from] = {}; harvest(from); var n = 0, lc = lastCarried[to] = {};
   T[to].fields.forEach(function(f){ var r = roleOf(to, f.k), v = null; if (KEEP[f.k]) return;
     if (r && pool[r]) v = pool[r]; else if (r === 'name' && pool.h1) v = pool.h1.replace(/[.…]+$/, ''); else if (r === 'h1' && pool.name) v = pool.name;
     if (v !== null && to === 'dergikapak' && r === 'h1' && pool.h1 && pool.h2) v = pool.h1 + ' ' + pool.h2;
@@ -692,13 +754,14 @@ function carry(from, to){
   if (poolImg && images[to] && 'img' in images[to]){ images[to].img = poolImg; n++; }
   return n;
 }
-var carryBox = document.getElementById('carry'); try { if (localStorage.getItem('updated-tasima') === '0') carryBox.checked = false; } catch(e){}
-carryBox.addEventListener('change', function(){ try { localStorage.setItem('updated-tasima', carryBox.checked ? '1' : '0'); } catch(e){} });
-tplSel.addEventListener('change', function(){ if (!T[tplSel.value]) return; var prev = cur, n = 0; if (carryBox.checked){ touch(); n = carry(prev, tplSel.value); } cur = tplSel.value; sel = null; save(); buildFields(); draw(); msg(n ? 'İçerik yeni şablona taşındı.' : ''); });
+var carryBtn = document.getElementById('carrybtn'), prevT = null;
+function syncCarry(){ carryBtn.disabled = !prevT || prevT === cur; carryBtn.textContent = prevT && prevT !== cur ? 'İçeriği getir: ' + T[prevT].group + ', ' + T[prevT].name : 'Önceki şablonun içeriğini getir'; }
+carryBtn.addEventListener('click', function(){ if (!prevT || prevT === cur) return; touch(); var n = carry(prevT, cur); save(); buildFields(); draw(); msg(n ? 'İçerik ve fotoğraf bu şablona getirildi. "Geri al" ile vazgeçebilirsin.' : 'Getirilecek içerik yok.'); });
+tplSel.addEventListener('change', function(){ if (!T[tplSel.value]) return; prevT = cur; cur = tplSel.value; sel = null; lastId = null; syncHist(); syncCarry(); save(); buildFields(); draw(); msg(''); });
 var pct = function(v){ return Math.round(v*100) + '%'; }, pxf = function(v){ return (v > 0 ? '+' : '') + Math.round(v); }, deg = function(v){ return Math.round(v) + '°'; }, auto = function(v){ return v > 0 ? String(Math.round(v)) : 'otomatik'; };
 var SL = { s: { l: 'Boyut', min: 0.3, max: 3, step: 0.01, def: 1, fmt: pct }, x: { l: 'Yatay', min: -700, max: 700, step: 2, def: 0, fmt: pxf }, y: { l: 'Dikey', min: -900, max: 900, step: 2, def: 0, fmt: pxf }, r: { l: 'Açı', min: -180, max: 180, step: 1, def: 0, fmt: deg },
-  w: { l: 'Kart genişliği', min: 0, max: 952, step: 4, def: 0, fmt: auto }, h: { l: 'Kart yüksekliği', min: 0, max: 900, step: 4, def: 0, fmt: auto }, ls: { l: 'Etiket yazısı', min: 0, max: 64, step: 1, def: 0, fmt: auto }, vs: { l: 'Değer yazısı', min: 0, max: 160, step: 1, def: 0, fmt: auto },
-  iz: { l: 'İç büyütme', min: 1, max: 4, step: 0.01, def: 1, fmt: pct }, ix: { l: 'İç yatay', min: -100, max: 100, step: 1, def: 0, fmt: pxf }, iy: { l: 'İç dikey', min: -100, max: 100, step: 1, def: 0, fmt: pxf } };
+  w: { l: 'Genişlik', min: 0, max: 1080, step: 4, def: 0, fmt: auto }, h: { l: 'Yükseklik', min: 0, max: 1350, step: 4, def: 0, fmt: auto }, ls: { l: 'Etiket yazısı', min: 0, max: 64, step: 1, def: 0, fmt: auto }, vs: { l: 'Değer yazısı', min: 0, max: 160, step: 1, def: 0, fmt: auto },
+  iz: { l: 'Fotoğraf boyutu', min: 0.3, max: 5, step: 0.01, def: 1, fmt: pct }, ix: { l: 'Fotoğraf yatay', min: -300, max: 300, step: 1, def: 0, fmt: pxf }, iy: { l: 'Fotoğraf dikey', min: -300, max: 300, step: 1, def: 0, fmt: pxf }, ir: { l: 'Fotoğraf açısı', min: -180, max: 180, step: 1, def: 0, fmt: deg } };
 function sliders(target, keys, hidden){
   hidden = hidden || [];
   var box = el('div', { 'class': 'sl' }), outs = [];
@@ -712,28 +775,34 @@ function sliders(target, keys, hidden){
   rs.addEventListener('click', function(){ touch(); keys.concat(hidden).forEach(function(k){ target[k] = SL[k].def; }); outs.forEach(function(f){ f(); }); save(); draw(); if (hidden.length) buildFields(); });
   box.appendChild(rs); return box;
 }
-var openLayers = {}, sel = null, hist = [], redo = [], lastTouch = 0, lastId = null;
-/* Her ayrı işlem bir geri alma adımıdır: aynı kontrolde kesintisiz sürüklemek ya da yazmak tek adım sayılır. */
-function touch(id){ var now = Date.now(), same = id && id === lastId && now - lastTouch < 1500; lastTouch = now; lastId = id || null; if (same) return; hist.push(snap()); if (hist.length > 200) hist.shift(); redo = []; syncHist(); }
-function snap(){ return JSON.stringify({ t: cur, s: state[cur] }); }
-function syncHist(){ undoBtn.disabled = !hist.length; undoAllBtn.disabled = !hist.length; redoBtn.disabled = !redo.length; }
+var openLayers = {}, sel = null, hist = {}, redo = {}, lastTouch = 0, lastId = null;
+function HS(t){ return hist[t] || (hist[t] = []); }
+function RS(t){ return redo[t] || (redo[t] = []); }
+/* Geçmiş her şablon için ayrı tutulur. Aynı kontrolde kesintisiz sürüklemek ya da yazmak tek adım sayılır. */
+function touch(id, t){ t = t || cur; var now = Date.now(), key = id ? t + '|' + id : null, same = key && key === lastId && now - lastTouch < 1500; lastTouch = now; lastId = key; if (same) return; var h = HS(t); h.push(JSON.stringify(state[t])); if (h.length > 200) h.shift(); redo[t] = []; syncHist(); }
+function syncHist(){ undoBtn.disabled = !HS(cur).length; undoAllBtn.disabled = !HS(cur).length; redoBtn.disabled = !RS(cur).length; }
 var undoBtn = document.getElementById('undo'), redoBtn = document.getElementById('redo'), undoAllBtn = document.getElementById('undoall'), hintEl = document.getElementById('hint');
-function applyHist(h, text){ var o = JSON.parse(h); cur = o.t; state[cur] = o.s; lastTouch = 0; lastId = null; syncHist(); save(); buildTabs(); buildFields(); draw(); msg(text); }
-undoBtn.addEventListener('click', function(){ if (!hist.length) return; var now = snap(), h = hist.pop(); redo.push(now); applyHist(h, 'Son adım geri alındı.'); });
-redoBtn.addEventListener('click', function(){ if (!redo.length) return; var now = snap(), h = redo.pop(); hist.push(now); applyHist(h, 'Adım yeniden uygulandı.'); });
-undoAllBtn.addEventListener('click', function(){ if (!hist.length) return; var now = snap(), h = hist[0]; hist = []; redo = [now]; applyHist(h, 'Tüm değişiklikler geri alındı. "İleri al" ile dönebilirsin.'); });
-document.getElementById('collapse').addEventListener('click', function(){ openLayers = {}; var ds = document.querySelectorAll('details.adj'); for (var i = 0; i < ds.length; i++) ds[i].open = false; });
+function applyState(str, text){ state[cur] = JSON.parse(str); lastTouch = 0; lastId = null; syncHist(); save(); buildFields(); draw(); msg(text); }
+undoBtn.addEventListener('click', function(){ var h = HS(cur); if (!h.length) return; RS(cur).push(JSON.stringify(state[cur])); applyState(h.pop(), 'Son adım geri alındı.'); });
+redoBtn.addEventListener('click', function(){ var r = RS(cur); if (!r.length) return; HS(cur).push(JSON.stringify(state[cur])); applyState(r.pop(), 'Adım yeniden uygulandı.'); });
+undoAllBtn.addEventListener('click', function(){ var h = HS(cur); if (!h.length) return; var first = h[0], now = JSON.stringify(state[cur]); hist[cur] = []; redo[cur] = [now]; applyState(first, 'Bu şablondaki tüm değişiklikler geri alındı. "İleri al" ile dönebilirsin.'); });
+document.getElementById('collapse').addEventListener('click', function(){ openLayers = {}; var ds = document.querySelectorAll('.adjp'), gs = document.querySelectorAll('button[data-gear]'), i; for (i = 0; i < ds.length; i++) ds[i].hidden = true; for (i = 0; i < gs.length; i++) gs[i].setAttribute('aria-expanded', 'false'); });
 var HINT = 'Önizlemede bir öğeye dokun: sürükleyerek taşı, mavi köşelerden büyüt ya da küçült, turuncu noktadan döndür.';
-function select(k, label, scroll){ var changed = sel !== k; sel = k; var cards = document.querySelectorAll('.mod'); for (var i = 0; i < cards.length; i++){ var on = k && cards[i].getAttribute('data-k') === k; cards[i].className = 'mod' + (on ? ' sel' : ''); if (on && scroll && cards[i].scrollIntoView) cards[i].scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } hintEl.textContent = k ? 'Seçili: ' + label + '. Sürükle, köşeden boyutlandır, turuncu noktadan döndür.' : HINT; if (changed) drawOverlay(); }
+function hintFor(label){ if (!sel) return HINT; if (selIn && hasInner(sel)) return 'Seçili: çerçevedeki fotoğraf. Sürükle: kadraj. Köşe: fotoğrafı büyüt. Tekrar dokun: çerçeveye dön.'; return 'Seçili: ' + label + (hasInner(sel) ? ' (çerçeve). Sürükle, köşeden boyutlandır. Tekrar dokun: içindeki fotoğraf.' : '. Sürükle, köşeden boyutlandır, turuncu noktadan döndür.'); }
+var selLabel = '';
+function setInner(on){ selIn = !!on && hasInner(sel); hintEl.textContent = hintFor(selLabel); var bs = document.querySelectorAll('.seg button'); for (var i = 0; i < bs.length; i++) bs[i].setAttribute('aria-pressed', String(bs[i].getAttribute('data-k') === sel && (bs[i].getAttribute('data-in') === '1') === selIn)); drawOverlay(); }
+function select(k, label, scroll){ var changed = sel !== k; if (changed) selIn = false; selLabel = label || ''; sel = k; var cards = document.querySelectorAll('.mod'); for (var i = 0; i < cards.length; i++){ var on = k && cards[i].getAttribute('data-k') === k; cards[i].className = 'mod' + (on ? ' sel' : ''); if (on && scroll && cards[i].scrollIntoView) cards[i].scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } hintEl.textContent = hintFor(label); if (changed) drawOverlay(); }
 function buildFields(){
-  var t = cur, s = state[t], box = document.getElementById('fields'); box.textContent = '';
+  var t = cur, s = state[t], box = document.getElementById('fields'), keepY = window.scrollY, keepH = box.offsetHeight; box.style.minHeight = keepH + 'px'; box.textContent = '';
   var fieldBy = {}; T[t].fields.forEach(function(f){ fieldBy[f.k] = f; });
   var layers = probe(t), claimed = {}, mods = [];
   layers.forEach(function(l){ var fk = (l.f || [l.k]).filter(function(k){ return fieldBy[k] && !claimed[k]; }); fk.forEach(function(k){ claimed[k] = 1; }); mods.push({ k: l.k, l: l.l, fk: fk, movable: true }); });
   (T[t].fixed || []).forEach(function(f){ mods.push({ k: f.k, l: f.l, fk: [], movable: false }); });
   var firstIdx = function(m){ var i = 999; m.fk.forEach(function(k){ i = Math.min(i, T[t].fields.indexOf(fieldBy[k])); }); return i; };
-  mods.sort(function(a, b){ return firstIdx(a) - firstIdx(b); });
-  function fieldEl(f){ var id = 'f-' + t + '-' + f.k, input = f.type === 'area' ? el('textarea', { id: id, spellcheck: 'false' }) : el('input', { type: 'text', id: id, autocomplete: 'off' });
+  var hasImg = function(m){ return (T[t].images || []).some(function(im){ return (im['in'] || im.k) === m.k; }); };
+  var weight = function(m){ return hasImg(m) ? -1 : firstIdx(m); };
+  mods.sort(function(a, b){ return weight(a) - weight(b); });
+  function fieldEl(f, bare){ var id = 'f-' + t + '-' + f.k, input = f.type === 'area' ? el('textarea', { id: id, spellcheck: 'false' }) : el('input', { type: 'text', id: id, autocomplete: 'off' });
     input.value = s[f.k]; var cnt = f.max ? el('span', { 'class': 'cnt' }) : null;
     function upd(){ if (cnt){ var n = input.value.length; cnt.textContent = n + ' / ' + f.max; cnt.className = 'cnt' + (n > f.max ? ' over' : ''); } }
     input.addEventListener('input', function(){ touch('f:' + f.k); s[f.k] = input.value; upd(); save(); draw(); }); upd();
@@ -742,33 +811,42 @@ function buildFields(){
       sr.value = tg[sk] > 0 ? tg[sk] : f.sz[2]; so.textContent = String(sr.value);
       sr.addEventListener('input', function(){ touch('sz:' + sid); tg[sk] = parseFloat(sr.value); so.textContent = String(sr.value); save(); draw(); });
       szRow = el('div', { 'class': 'ctl sz' }, [el('label', { 'for': sid, text: 'Yazı boyutu' }), sr, so]); }
-    return el('div', { 'class': 'f' }, [el('div', { 'class': 'row' }, [el('label', { 'for': id, text: f.l }), cnt]), input, szRow, f.help ? el('div', { 'class': 'help', text: f.help }) : null]); }
+    if (bare) input.setAttribute('aria-label', f.l);
+    return el('div', { 'class': 'f' }, [bare ? (cnt ? el('div', { 'class': 'row end' }, [cnt]) : null) : el('div', { 'class': 'row' }, [el('label', { 'for': id, text: f.l }), cnt]), input, szRow, f.help ? el('div', { 'class': 'help', text: f.help }) : null]); }
   function imageEl(im){ var id = 'f-' + t + '-' + im.k, file = el('input', { type: 'file', accept: 'image/*', id: id });
     file.addEventListener('change', function(){ var fl = file.files && file.files[0]; if (!fl) return; loadImg(URL.createObjectURL(fl)).then(function(i){ images[t][im.k] = i; draw(); msg(''); }).catch(function(){ msg('Görsel açılamadı; başka bir dosya dene.'); }); });
     var rm = el('button', { type: 'button', 'class': 'mini', text: 'Görseli kaldır' }); rm.addEventListener('click', function(){ images[t][im.k] = null; file.value = ''; draw(); });
     return el('div', { 'class': 'f' }, [el('label', { 'for': id, text: im.l }), file, im.help ? el('div', { 'class': 'help', text: im.help }) : null, el('div', {}, [rm])]); }
   var loose = T[t].fields.filter(function(f){ return !claimed[f.k]; });
-  if (loose.length) box.appendChild(el('div', { 'class': 'mod', 'data-k': '' }, [el('div', { 'class': 'hd' }, [el('span', { 'class': 'nm', text: 'Genel' })])].concat(loose.map(fieldEl))));
+  if (loose.length) box.appendChild(el('div', { 'class': 'mod', 'data-k': '' }, [el('div', { 'class': 'hd' }, [el('span', { 'class': 'nm', text: 'Genel' })])].concat(loose.map(function(f){ return fieldEl(f, false); }))));
   mods.forEach(function(m){
     var kids = [], pos = s._order.indexOf(m.k), n = s._order.length;
-    var up = el('button', { type: 'button', 'class': 'mini', text: 'Öne', 'aria-label': m.l + ': öne getir' }), dn = el('button', { type: 'button', 'class': 'mini', text: 'Arkaya', 'aria-label': m.l + ': arkaya gönder' });
+    var up = iconBtn('up', m.l + ': öne getir'), dn = iconBtn('down', m.l + ': arkaya gönder'), gear = iconBtn('gear', m.l + ': boyut, konum ve açı');
     function move(dir){ var o = s._order, i = o.indexOf(m.k), j = i + dir; if (i < 0 || j < 0 || j >= o.length) return; touch(); o[i] = o[j]; o[j] = m.k; save(); buildFields(); draw(); }
     up.disabled = pos === n - 1; dn.disabled = pos === 0;
     up.addEventListener('click', function(){ move(1); }); dn.addEventListener('click', function(){ move(-1); });
-    kids.push(el('div', { 'class': 'hd' }, [el('span', { 'class': 'nm', text: m.l })].concat(m.movable ? [el('span', { 'class': 'mv' }, [el('span', { 'class': 'pos', text: 'katman ' + (pos + 1) + '/' + n }), dn, up])] : [el('span', { 'class': 'pos', text: 'zemin' })])));
-    m.fk.forEach(function(k){ kids.push(fieldEl(fieldBy[k])); });
+    var badge = el('span', { 'class': 'badge', title: m.movable ? 'Katman sırası: ' + (pos + 1) + ' / ' + n + ' (büyük sayı önde)' : 'Zemin katmanı' }, [ico('layer'), el('span', { text: m.movable ? String(pos + 1) : 'zemin' })]);
+    kids.push(el('div', { 'class': 'hd' }, [el('span', { 'class': 'nm', text: m.l }), el('span', { 'class': 'mv' }, [badge].concat(m.movable ? [dn, up] : []).concat([gear]))]));
+    var single = m.fk.length === 1 && !(T[t].images || []).some(function(im){ return (im['in'] || im.k) === m.k; });
+    m.fk.forEach(function(k){ kids.push(fieldEl(fieldBy[k], single)); });
     (T[t].images || []).forEach(function(im){ if ((im['in'] || im.k) === m.k) kids.push(imageEl(im)); });
+    if (T[t].inner && T[t].inner[m.k]){ var seg = el('div', { 'class': 'seg', role: 'group', 'aria-label': 'Düzenlenecek parça' });
+      [['0', 'Çerçeve'], ['1', 'Fotoğraf']].forEach(function(o){ var sb = el('button', { type: 'button', 'class': 'mini', 'data-k': m.k, 'data-in': o[0], 'aria-pressed': String(sel === m.k && (o[0] === '1') === selIn), text: o[1] }); sb.addEventListener('click', function(ev){ ev.stopPropagation(); if (sel !== m.k) select(m.k, m.l); if (o[0] === '1' && !hasInner(m.k)){ msg('Önce bu karta bir fotoğraf yükle.'); return; } setInner(o[0] === '1'); }); seg.appendChild(sb); });
+      kids.push(el('div', { 'class': 'f' }, [el('span', { 'class': 'lab', text: 'Önizlemede neyi hareket ettireyim?' }), seg])); }
     if (m.k === 'logo' || m.k === 'mast'){ var lid = 'f-' + t + '-logo', ls = el('select', { id: lid }); LOGOS.forEach(function(o){ ls.appendChild(el('option', { value: o[0], text: o[1] })); }); ls.value = s._logo || defLogo(t); ls.addEventListener('change', function(){ touch(); s._logo = ls.value; save(); draw(); }); kids.push(el('div', { 'class': 'f' }, [el('label', { 'for': lid, text: 'Logo çeşidi' }), ls])); }
-    var d = el('details', { 'class': 'adj' }, [el('summary', { text: 'Boyut, konum ve açı' })]); if (openLayers[t + m.k]) d.open = true;
-    d.addEventListener('toggle', function(){ openLayers[t + m.k] = d.open; });
     var inl = T[t].fields.filter(function(f){ return f.sz && f.sz[0] === m.k; }).map(function(f){ return f.sz[1]; }), ex = ((T[t].extras || {})[m.k] || []);
-    d.appendChild(sliders(s._adj[m.k], ['s', 'x', 'y', 'r'].concat(ex.filter(function(k){ return inl.indexOf(k) < 0; })), ex.filter(function(k){ return inl.indexOf(k) >= 0; }))); kids.push(d);
+    var d = el('div', { 'class': 'adjp' }, [sliders(s._adj[m.k], ['s', 'x', 'y', 'r'].concat(ex.filter(function(k){ return inl.indexOf(k) < 0; })), ex.filter(function(k){ return inl.indexOf(k) >= 0; }))]);
+    var isOpen = !!openLayers[t + m.k]; d.hidden = !isOpen; gear.setAttribute('aria-expanded', String(isOpen)); gear.setAttribute('data-gear', '1');
+    gear.addEventListener('click', function(){ var o = d.hidden; d.hidden = !o; openLayers[t + m.k] = o; gear.setAttribute('aria-expanded', String(o)); });
+    kids.push(d);
     var card = el('div', { 'class': 'mod' + (sel === m.k ? ' sel' : ''), 'data-k': m.k }, kids);
     card.addEventListener('pointerdown', function(){ select(m.k, m.l); }); card.addEventListener('focusin', function(){ select(m.k, m.l); });
     box.appendChild(card);
   });
   if (sel && !s._adj[sel]) sel = null;
-  var cm = mods.filter(function(m){ return m.k === sel; })[0]; hintEl.textContent = cm ? 'Seçili: ' + cm.l + '. Sürükle, köşeden boyutlandır, turuncu noktadan döndür.' : HINT;
+  var cm = mods.filter(function(m){ return m.k === sel; })[0]; if (cm) selLabel = cm.l; else selIn = false; hintEl.textContent = cm ? hintFor(cm.l) : HINT;
+  box.style.minHeight = ''; if (Math.abs(window.scrollY - keepY) > 2) window.scrollTo(0, keepY);
+  buildSaves();
 }
 /* önizlemede doğrudan düzenleme: seç, taşı, boyutlandır, döndür */
 (function(){ var drag = null;
@@ -778,35 +856,91 @@ function buildFields(){
     if (!found) (T[cur].fixed || []).forEach(function(f){ var bx = f.box || [0, 0, W, H]; if (!found && (images[cur] || {})[f.k] && p.x >= bx[0] && p.x <= bx[0] + bx[2] && p.y >= bx[1] && p.y <= bx[1] + bx[3]) found = { k: f.k, b: { l: f.l } }; });
     return found; }
   ov.addEventListener('pointerdown', function(e){ var p = pt(e), h = hitHandle(p), a;
-    if (h && sel){ a = state[cur]._adj[sel]; touch(); drag = { mode: h.kind, a: a, p0: p, s0: a.s, r0: a.r, cx: selBox.ax, cy: selBox.ay }; if (h.kind === 'scale' && Math.hypot(p.x - drag.cx, p.y - drag.cy) < 30){ drag.cx = selBox.x + selBox.w/2; drag.cy = selBox.y + selBox.h/2; } }
-    else { var hit = hitLayer(p); if (!hit){ select(null, ''); return; } select(hit.k, hit.b.l, false); a = state[cur]._adj[hit.k]; touch(); drag = { mode: 'move', a: a, p0: p, x0: a.x, y0: a.y }; }
+    if (h && sel){ a = state[cur]._adj[sel]; touch();
+      if (selIn && hasInner(sel)) drag = { mode: h.kind === 'scale' ? 'iscale' : 'irot', a: a, p0: p, z0: a.iz || 1, r0: a.ir || 0, cx: selBox.x + selBox.w/2, cy: selBox.y + selBox.h/2, moved: true };
+      else { drag = { mode: h.kind, a: a, p0: p, s0: a.s, r0: a.r, cx: selBox.ax, cy: selBox.ay, moved: true }; if (h.kind === 'scale' && Math.hypot(p.x - drag.cx, p.y - drag.cy) < 30){ drag.cx = selBox.x + selBox.w/2; drag.cy = selBox.y + selBox.h/2; } } }
+    else { var hit = hitLayer(p); if (!hit){ select(null, ''); return; } var same = hit.k === sel; if (!same) select(hit.k, hit.b.l, false); a = state[cur]._adj[hit.k]; touch();
+      if (same && selIn && hasInner(sel)) drag = { mode: 'ipan', a: a, p0: p, x0: a.ix || 0, y0: a.iy || 0, tap: true, moved: false };
+      else drag = { mode: 'move', a: a, p0: p, x0: a.x, y0: a.y, tap: same && hasInner(hit.k), moved: false }; }
     ov.setPointerCapture(e.pointerId); e.preventDefault(); });
-  ov.addEventListener('pointermove', function(e){ if (!drag) return; var p = pt(e), a = drag.a;
-    if (drag.mode === 'move'){ a.x = Math.round(drag.x0 + p.x - drag.p0.x); a.y = Math.round(drag.y0 + p.y - drag.p0.y); }
-    else if (drag.mode === 'scale'){ var d0 = Math.max(20, Math.hypot(drag.p0.x - drag.cx, drag.p0.y - drag.cy)), d1 = Math.hypot(p.x - drag.cx, p.y - drag.cy); a.s = Math.max(0.3, Math.min(3, Math.round(drag.s0*d1/d0*100)/100)); }
-    else { var a0 = Math.atan2(drag.p0.y - drag.cy, drag.p0.x - drag.cx), a1 = Math.atan2(p.y - drag.cy, p.x - drag.cx), r = drag.r0 + (a1 - a0)*180/Math.PI; r = ((r + 180) % 360 + 360) % 360 - 180; if (Math.abs(r) < 3) r = 0; a.r = Math.round(r); }
+  ov.addEventListener('pointermove', function(e){ if (!drag) return; var p = pt(e), a = drag.a, dx = p.x - drag.p0.x, dy = p.y - drag.p0.y;
+    if (!drag.moved){ if (Math.hypot(dx, dy) < 8) return; drag.moved = true; }
+    if (drag.mode === 'move'){ a.x = Math.round(drag.x0 + dx); a.y = Math.round(drag.y0 + dy); }
+    else if (drag.mode === 'ipan'){ var fr = T[cur].inner[sel], fw = a.w > 0 ? a.w : fr[0], fh = a.h > 0 ? a.h : fr[1], an = -(a.r || 0)*Math.PI/180, lx = (dx*Math.cos(an) - dy*Math.sin(an))/(a.s || 1), ly = (dx*Math.sin(an) + dy*Math.cos(an))/(a.s || 1); a.ix = Math.round(drag.x0 + lx/(fw/2)*100); a.iy = Math.round(drag.y0 + ly/(fh/2)*100); }
+    else if (drag.mode === 'scale' || drag.mode === 'iscale'){ var d0 = Math.max(20, Math.hypot(drag.p0.x - drag.cx, drag.p0.y - drag.cy)), d1 = Math.hypot(p.x - drag.cx, p.y - drag.cy); if (drag.mode === 'scale') a.s = Math.max(0.3, Math.min(3, Math.round(drag.s0*d1/d0*100)/100)); else a.iz = Math.max(0.3, Math.min(5, Math.round(drag.z0*d1/d0*100)/100)); }
+    else { var a0 = Math.atan2(drag.p0.y - drag.cy, drag.p0.x - drag.cx), a1 = Math.atan2(p.y - drag.cy, p.x - drag.cx), r = drag.r0 + (a1 - a0)*180/Math.PI; r = ((r + 180) % 360 + 360) % 360 - 180; if (Math.abs(r) < 3) r = 0; if (drag.mode === 'irot') a.ir = Math.round(r); else a.r = Math.round(r); }
     draw(); });
-  function end(){ if (!drag) return; drag = null; save(); buildFields(); var c = sel && document.querySelector('.mod.sel'); if (c && c.scrollIntoView && window.matchMedia('(min-width: 900px)').matches) c.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
+  function end(){ if (!drag) return; var d = drag; drag = null; if (!d.moved){ HS(cur).pop(); syncHist(); if (d.tap) setInner(!selIn); return; } save(); buildFields(); var c = sel && document.querySelector('.mod.sel'); if (c && c.scrollIntoView && window.matchMedia('(min-width: 900px)').matches) c.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
   ov.addEventListener('pointerup', end); ov.addEventListener('pointercancel', end);
 })();
-document.getElementById('reset').addEventListener('click', function(){ touch(); state[cur] = defaults(cur); images[cur] = freshImages(cur); sel = null; save(); buildFields(); draw(); msg('Örnek içerik ve ayarlar geri yüklendi.'); });
+document.getElementById('reset').addEventListener('click', function(){ touch(); state[cur] = defaults(cur); images[cur] = freshImages(cur); sel = null; save(); buildFields(); draw(); msg('Bu şablon ilk hâline döndü. "Geri al" ile vazgeçebilirsin.'); });
+(function(){ var b = document.getElementById('resetall'), note = document.getElementById('resetnote'), armed = 0, timer = 0, base = b.textContent;
+  function disarm(){ clearTimeout(timer); armed = 0; b.textContent = base; b.className = 'mini'; note.hidden = true; }
+  b.addEventListener('click', function(){
+    if (!armed){ armed = 1; b.textContent = 'Evet, hepsini sıfırla'; b.className = 'mini warn'; note.hidden = false; clearTimeout(timer); timer = setTimeout(disarm, 12000); return; }
+    disarm();
+    Object.keys(T).forEach(function(t){ lastId = null; touch(null, t); state[t] = defaults(t); images[t] = freshImages(t); });
+    pool = {}; poolImg = null; lastCarried = {}; prevT = null; sel = null; lastId = null; syncHist(); syncCarry(); save(); buildFields(); draw();
+    msg('Tüm şablonlar ilk hâline döndü.'); });
+  document.getElementById('resetcancel').addEventListener('click', disarm);
+})();
+
+/* ================= kayıtlı düzenler (hafıza) ================= */
+var SAVEKEY = 'updated-kayitlar';
+function loadSaves(){ try { var o = JSON.parse(localStorage.getItem(SAVEKEY) || '{}'); return o && typeof o === 'object' ? o : {}; } catch(e){ return {}; } }
+function storeSaves(o){ try { localStorage.setItem(SAVEKEY, JSON.stringify(o)); return true; } catch(e){ return false; } }
+function applySaved(sv, withContent){ var t = cur, s = state[t]; touch();
+  Object.keys(s._adj).forEach(function(k){ var v = sv._adj && sv._adj[k]; if (v) Object.keys(s._adj[k]).forEach(function(p){ if (isFinite(v[p])) s._adj[k][p] = +v[p]; }); });
+  if (Array.isArray(sv._order)){ var known = defaults(t)._order, o = sv._order.filter(function(k){ return known.indexOf(k) >= 0; }); known.forEach(function(k){ if (o.indexOf(k) < 0) o.push(k); }); s._order = o; }
+  if (typeof sv._logo === 'string') s._logo = sv._logo;
+  if (withContent) T[t].fields.forEach(function(f){ if (typeof sv[f.k] === 'string') s[f.k] = sv[f.k]; });
+  save(); buildFields(); draw(); }
+function buildSaves(){ var list = document.getElementById('save-list'), out = document.getElementById('save-msg'); if (!list) return; list.textContent = '';
+  var all = loadSaves(), mine = all[cur] || [];
+  if (!mine.length) list.appendChild(el('div', { 'class': 'help', text: 'Bu şablon için kayıt yok.' }));
+  mine.forEach(function(sv, i){
+    var a = el('button', { type: 'button', 'class': 'mini', text: 'Düzeni uygula' }), b = el('button', { type: 'button', 'class': 'mini', text: 'İçerikle aç' }), d = el('button', { type: 'button', 'class': 'mini', text: 'Sil', 'aria-label': sv.n + ' kaydını sil' });
+    a.addEventListener('click', function(){ applySaved(sv.s, false); document.getElementById('save-msg').textContent = '"' + sv.n + '" düzeni uygulandı; yazıların korundu.'; });
+    b.addEventListener('click', function(){ applySaved(sv.s, true); document.getElementById('save-msg').textContent = '"' + sv.n + '" içeriğiyle açıldı.'; });
+    d.addEventListener('click', function(){ var o = loadSaves(); (o[cur] || []).splice(i, 1); storeSaves(o); buildSaves(); document.getElementById('save-msg').textContent = 'Kayıt silindi.'; });
+    list.appendChild(el('div', { 'class': 'saveitem' }, [el('span', { 'class': 'nm', text: sv.n }), el('span', { 'class': 'mv' }, [a, b, d])])); });
+}
+document.getElementById('save-go').addEventListener('click', function(){ var inp = document.getElementById('save-name'), out = document.getElementById('save-msg'), name = inp.value.trim() || (T[cur].name + ' ' + new Date().toLocaleDateString('tr-TR'));
+  var o = loadSaves(); o[cur] = o[cur] || []; o[cur] = o[cur].filter(function(x){ return x.n !== name; }); o[cur].unshift({ n: name.slice(0, 40), s: JSON.parse(JSON.stringify(state[cur])) }); if (o[cur].length > 20) o[cur].length = 20;
+  if (!storeSaves(o)){ out.textContent = 'Kaydedilemedi; tarayıcının depolama alanı dolu ya da kapalı.'; return; } inp.value = ''; buildSaves(); document.getElementById('save-msg').textContent = '"' + name + '" kaydedildi.'; });
 
 /* ================= indirme ================= */
 var dlPromise = (window.claude && typeof window.claude.use === 'function') ? window.claude.use('downloads').catch(function(){ return null; }) : Promise.resolve(null);
+function saveBlob(blob, name, type, say){
+  return dlPromise.then(function(d){
+    if (d) return d.save({ filename: name, data: blob }).then(function(){ say('Kaydedildi.'); }, function(e){ say(e && e.code === 'declined' ? 'İndirme iptal edildi.' : e && e.code === 'rate_limited' ? 'Biraz bekleyip tekrar dene.' : 'Bu görünümde indirme kullanılamıyor.'); });
+    var file = null; try { file = new File([blob], name, { type: type }); } catch(e){}
+    if (file && navigator.canShare && navigator.canShare({ files: [file] }) && /iPhone|iPad|Android/i.test(navigator.userAgent)) return navigator.share({ files: [file] }).then(function(){ say('Paylaşım ekranı açıldı.'); }, function(e){ say(e && e.name === 'AbortError' ? 'Paylaşım iptal edildi.' : 'Paylaşılamadı; tekrar dene.'); });
+    var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove(); say('İndirme başlatıldı.'); });
+}
 document.getElementById('dl').addEventListener('click', function(){
   msg('Hazırlanıyor…'); var name = 'updated-' + cur + '-post.png';
-  cv.toBlob(function(blob){ if (!blob){ msg('Görsel oluşturulamadı.'); return; }
-    dlPromise.then(function(d){ if (d){ return d.save({ filename: name, data: blob }).then(function(){ msg('Kaydedildi.'); }, function(e){ msg(e && e.code === 'declined' ? 'İndirme iptal edildi.' : e && e.code === 'rate_limited' ? 'Biraz bekleyip tekrar dene.' : 'Bu görünümde indirme kullanılamıyor.'); }); }
-      var file = null; try { file = new File([blob], name, { type: 'image/png' }); } catch(e){}
-      if (file && navigator.canShare && navigator.canShare({ files: [file] }) && /iPhone|iPad|Android/i.test(navigator.userAgent)){ return navigator.share({ files: [file] }).then(function(){ msg('Paylaşım ekranı açıldı.'); }, function(e){ msg(e && e.name === 'AbortError' ? 'Paylaşım iptal edildi.' : 'Paylaşılamadı; tekrar dene.'); }); }
-      var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove(); msg('İndirme başlatıldı.'); });
-  }, 'image/png');
+  cv.toBlob(function(blob){ if (!blob){ msg('Görsel oluşturulamadı.'); return; } saveBlob(blob, name, 'image/png', msg); }, 'image/png');
 });
+(function(){ var out = document.getElementById('save-msg'), say = function(t){ out.textContent = t; }, file = document.getElementById('save-imp');
+  document.getElementById('save-exp').addEventListener('click', function(){ var all = loadSaves(), n = 0; Object.keys(all).forEach(function(t){ n += (all[t] || []).length; }); if (!n){ say('Dışa aktarılacak kayıt yok.'); return; }
+    saveBlob(new Blob([JSON.stringify({ updatedKayitlar: 1, saves: all })], { type: 'application/json' }), 'updated-kayitli-duzenler.json', 'application/json', function(t){ say(t === 'Kaydedildi.' || t === 'İndirme başlatıldı.' ? n + ' kayıt dosyaya aktarıldı.' : t); }); });
+  file.addEventListener('change', function(){ var fl = file.files && file.files[0]; if (!fl) return; var rd = new FileReader();
+    rd.onload = function(){ var o = null; try { o = JSON.parse(String(rd.result)); } catch(e){} file.value = '';
+      if (!o || !o.saves || typeof o.saves !== 'object'){ say('Bu dosya okunamadı. Panelden dışa aktarılan "updated-kayitli-duzenler.json" dosyasını seç.'); return; }
+      var all = loadSaves(), added = 0;
+      Object.keys(o.saves).forEach(function(t){ if (!T[t] || !Array.isArray(o.saves[t])) return; all[t] = all[t] || [];
+        o.saves[t].forEach(function(sv){ if (!sv || typeof sv.n !== 'string' || !sv.s || typeof sv.s !== 'object') return; all[t] = all[t].filter(function(x){ return x.n !== sv.n; }); all[t].push({ n: sv.n.slice(0, 40), s: sv.s }); added++; });
+        if (all[t].length > 20) all[t] = all[t].slice(-20); });
+      if (!added){ say('Dosyada bu panele uygun kayıt yok.'); return; }
+      if (!storeSaves(all)){ say('Kaydedilemedi; tarayıcının depolama alanı dolu ya da kapalı.'); return; } buildSaves(); say(added + ' kayıt içe aktarıldı. Aynı adlı kayıtların yerine yenisi geçti.'); };
+    rd.onerror = function(){ say('Dosya okunamadı.'); }; rd.readAsText(fl); });
+})();
 
 /* ================= otomasyondan gelen postu açma ================= */
 function decodeCode(code){ var m = String(code).trim().match(/UPD1:([A-Za-z0-9_\-]+)/); if (!m) return null; var b = m[1].replace(/-/g, '+').replace(/_/g, '/'); while (b.length % 4) b += '='; try { var bin = atob(b), bytes = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i); var o = JSON.parse(new TextDecoder('utf-8').decode(bytes)); return o && T[o.t] && o.v && typeof o.v === 'object' ? o : null; } catch(e){ return null; } }
 (function(){ var box = document.getElementById('imp-in'), btn = document.getElementById('imp-go'), out = document.getElementById('imp-msg'), file = document.getElementById('imp-file'), chips = document.getElementById('imp-slides'), pack = null;
-  function fill(o){ touch(); cur = o.t; sel = null; state[cur] = defaults(cur); Object.keys(o.v).forEach(function(k){ if (k.charAt(0) !== '_' && k in state[cur]) state[cur][k] = String(o.v[k]); }); (T[cur].images || []).forEach(function(im){ images[cur][im.k] = null; }); save(); buildTabs(); buildFields(); draw(); }
+  function fill(o){ cur = o.t; touch(); sel = null; state[cur] = defaults(cur); Object.keys(o.v).forEach(function(k){ if (k.charAt(0) !== '_' && k in state[cur]) state[cur][k] = String(o.v[k]); }); (T[cur].images || []).forEach(function(im){ images[cur][im.k] = null; }); syncHist(); save(); buildTabs(); buildFields(); draw(); }
   function openSlide(i){ var sl = pack.slides[i]; fill(sl); var bs = chips.querySelectorAll('button'); for (var n = 0; n < bs.length; n++) bs[n].setAttribute('aria-pressed', String(n === i));
     var hasImg = sl.img && pack.img && (T[cur].images || []).some(function(im){ return im.k === 'img'; });
     out.textContent = (i + 1) + '. slayt açıldı: ' + T[cur].group + ', ' + T[cur].name + '.' + (hasImg ? ' Haber fotoğrafı yüklendi.' : '');
@@ -845,7 +979,7 @@ window.__updatedTool = { ready: false, templates: function(){ return Object.keys
 /* ================= başlat ================= */
 Promise.all(Object.keys(A).map(function(k){ return loadImg(A[k]).then(function(i){ IMG[k] = i; }); })).then(function(){
   Object.keys(T).forEach(function(t){ state[t] = defaults(t); images[t] = freshImages(t); });
-  restore(); buildTabs(); buildFields(); draw(); window.__updatedTool.ready = true;
+  restore(); buildTabs(); buildFields(); draw(); syncCarry(); window.__updatedTool.ready = true;
   var fs = ["400 34px Inter", "500 26px Inter", "600 28px Inter", "700 88px Inter", "800 330px Inter", "500 26px 'IBM Plex Mono'", "600 28px 'IBM Plex Mono'"];
   if (document.fonts && document.fonts.load){ Promise.all(fs.map(function(f){ return document.fonts.load(f, 'İğüşöç 0123'); })).then(draw, draw); document.fonts.ready.then(draw); }
 });
