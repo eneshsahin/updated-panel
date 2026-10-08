@@ -14,7 +14,7 @@
 :root{
   --bg:#F3F6FC; --surface:#FFFFFF; --sunk:#E9EEF8; --ink:#0E1A33; --muted:#57657F; --line:#D9E0EE;
   --blue:#2563EB; --blue-soft:#DCE7FF; --orange:#E85A0C; --orange-soft:#FFE6D6;
-  --ok:#12804A; --ok-soft:#D6F3E3; --busy:#7C879B; --busy-soft:#E4E8F0; --on-accent:#FFFFFF; --err:#C62828;
+  --ok:#12804A; --ok-soft:#D6F3E3; --purple:#7C3AED; --purple-soft:#EDE4FF; --busy:#7C879B; --busy-soft:#E4E8F0; --on-accent:#FFFFFF; --err:#C62828;
   --display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
   --body:"Instrument Sans","Segoe UI",system-ui,sans-serif;
   --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
@@ -22,7 +22,7 @@
 @media (prefers-color-scheme: dark){ :root{
   --bg:#1B1D21; --surface:#26292F; --sunk:#31353C; --ink:#F1F3F6; --muted:#A8AFBA; --line:#3B4049;
   --blue:#6A98F8; --blue-soft:#1B2C55; --orange:#FF8A47; --orange-soft:#44240F;
-  --ok:#3DD68C; --ok-soft:#113524; --busy:#9AA1AD; --busy-soft:#353941; --on-accent:#14161A; --err:#FF8A80; color-scheme:dark } }
+  --ok:#3DD68C; --ok-soft:#113524; --purple:#B794F6; --purple-soft:#3A2A5C; --busy:#9AA1AD; --busy-soft:#353941; --on-accent:#14161A; --err:#FF8A80; color-scheme:dark } }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html{padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
@@ -80,7 +80,7 @@ th{color:var(--muted);font-weight:500;font-size:12px}
 .job .foot{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:auto}
 .pill{border-radius:99px;padding:3px 10px;font-size:12px;font-weight:600;display:inline-flex;gap:5px;align-items:center}
 .pill.wait{background:var(--orange-soft);color:var(--orange)} .pill.ok{background:var(--ok-soft);color:var(--ok)}
-.pill.off{background:var(--busy-soft);color:var(--busy)} .pill.blue{background:var(--blue-soft);color:var(--blue)}
+.pill.off{background:var(--busy-soft);color:var(--busy)} .pill.purple{background:var(--purple-soft);color:var(--purple)} .pill.blue{background:var(--blue-soft);color:var(--blue)}
 .due{display:inline-flex;gap:5px;align-items:center;color:var(--muted)} .due.soon{color:var(--orange)}
 .empty{color:var(--muted);padding:20px;text-align:center;border:1px dashed var(--line);border-radius:14px}
 .month{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
@@ -88,7 +88,7 @@ th{color:var(--muted);font-weight:500;font-size:12px}
 .mday{background:var(--surface);border:1px solid var(--line);border-radius:10px;min-height:64px;padding:6px;display:flex;flex-direction:column;gap:4px;align-items:flex-start;text-align:left;min-width:0}
 .mday.out{opacity:.35} .mday.today{border-color:var(--blue)} .mday.sel{background:var(--blue-soft)}
 .dots{display:flex;flex-wrap:wrap;gap:3px}
-.dot{width:8px;height:8px;border-radius:99px;background:var(--ok)} .dot.d{background:var(--orange)} .dot.g{background:var(--blue)}
+.dot{width:8px;height:8px;border-radius:99px;background:var(--ok);flex:none} .dot.d{background:var(--orange);border-radius:2px} .dot.g{background:var(--blue);border-radius:1px;transform:rotate(45deg) scale(.85)} .dot.e{background:var(--purple);border-radius:3px;width:16px;height:6px;align-self:center}
 .legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--muted)} .legend span{display:inline-flex;gap:6px;align-items:center}
 .avatar{width:40px;height:40px;border-radius:12px;background:var(--ink);color:var(--bg);display:grid;place-items:center;font-family:var(--display);font-weight:800;flex:none}
 .list{display:flex;flex-direction:column}
@@ -163,14 +163,18 @@ const left=s=>Math.round((D(s)-T)/864e5);
 const GUN=['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'];
 const mon=add(-((T.getDay()+6)%7));
 const week=[0,1,2,3,4,5,6].map(i=>add(i,mon));
-const first=new Date(T.getFullYear(),T.getMonth(),1),gridStart=add(-((first.getDay()+6)%7),first);
 const TABS=[['hafta','Bu Hafta'],['takvim','Takvim'],['isler','İşler'],['ekipman','Ekipman','kamera'],['ekip','Ekip'],['yonetim','Yönetim']];
 
-let S={profiles:[],avail:{},notes:{},jobs:[],gear:[],notifs:[],invites:[]};
+let S={profiles:[],avail:{},events:[],jobs:[],gear:[],notifs:[],invites:[]};
+let calOff=0,editJob=null;
 let uid=null,tab='hafta',sub='havuz',selDay=iso(T),calSel=iso(T),authMode='login',recovering=false;
 const M=id=>S.profiles.find(m=>m.id===id);
 const me=()=>M(uid)||{};
 const nm=id=>esc(M(id)?.name||'Bilinmiyor');
+const slotTxt=t=>/^\d\d:\d\d$/.test(t||'')?t+' sonrası':(t||'');
+const fmtY=s=>D(s).toLocaleDateString('tr-TR',{day:'numeric',month:'short',year:D(s).getFullYear()!==T.getFullYear()?'numeric':undefined});
+const viewFirst=()=>new Date(T.getFullYear(),T.getMonth()+calOff,1);
+const gridOf=()=>{const f=viewFirst();return add(-((f.getDay()+6)%7),f)};
 const freeDays=m=>week.map((d,i)=>S.avail[m]?.[iso(d)]?.s==='bos'?GUN[i]:null).filter(Boolean);
 
 let toastT;function toast(t){const e=$('toast');e.textContent=t;e.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>e.hidden=true,3200)}
@@ -178,11 +182,11 @@ function fail(error){console.error(error);toast('Olmadı: '+(error.message||'bil
 
 /* ---------- veri ---------- */
 async function load(){
-  const from=iso(gridStart<mon?gridStart:mon),to=iso(add(42,gridStart));
+  const gs=gridOf(),ge=add(42,gs),we=add(7,mon),from=iso(gs<mon?gs:mon),to=iso(ge>we?ge:we);
   const q=await Promise.all([
     sb.from('profiles').select('*').order('created_at'),
     sb.from('availability').select('*').gte('day',from).lte('day',to),
-    sb.from('week_notes').select('*').eq('week_start',iso(mon)),
+    sb.from('events').select('*').order('start_day'),
     sb.from('jobs').select('*').order('due'),
     sb.from('job_requests').select('*'),
     sb.from('gear').select('*').order('day'),
@@ -190,8 +194,8 @@ async function load(){
     sb.from('invites').select('*').order('created_at')]);
   const bad=q.find(x=>x.error);if(bad){fail(bad.error);return}
   const [p,a,n,j,r,g,nt,inv]=q.map(x=>x.data);
-  S.profiles=p;S.avail={};a.forEach(x=>{(S.avail[x.user_id]??={})[x.day]={s:x.status,t:x.slot,loc:x.loc}});
-  S.notes={};n.forEach(x=>S.notes[x.user_id]=x.note);
+  S.profiles=p;S.avail={};a.forEach(x=>{(S.avail[x.user_id]??={})[x.day]={s:x.status,t:x.slot,loc:x.loc,n:x.note}});
+  S.events=n;
   S.jobs=j.map(x=>({...x,req:r.filter(y=>y.job_id===x.id).map(y=>y.user_id)}));
   S.gear=g;S.notifs=nt;S.invites=inv;
   render();
@@ -210,67 +214,92 @@ const V={
 hafta(){
   const a=S.avail[uid]?.[selDay];
   const strip=week.map((d,i)=>{const s=S.avail[uid]?.[iso(d)]?.s||'';return `<button class="day ${s} ${iso(d)===selDay?'sel':''} ${iso(d)===iso(T)?'today':''}" data-act="day" data-v="${iso(d)}"><small>${GUN[i]}</small><strong>${d.getDate()}</strong><i>${s==='bos'?'Boş':s==='dolu'?'Dolu':'·'}</i></button>`}).join('');
+  const hrs=Array.from({length:16},(_,i)=>String(i+8).padStart(2,'0')+':00');
   const ch=(k,v,cur)=>`<button class="chip" aria-pressed="${cur===v}" data-act="${k}" data-v="${v}">${v}</button>`;
-  const detail=`<div class="row"><strong>${D(selDay).toLocaleDateString('tr-TR',{weekday:'long',day:'numeric',month:'long'})}</strong></div>
+  const detail=`<div class="row"><strong>${D(selDay).toLocaleDateString('tr-TR',{weekday:'long',day:'numeric',month:'long'})}</strong><span class="muted">Seçili güne tekrar dokun: Boş / Dolu değişir.</span></div>
    <div class="row"><button class="chip" aria-pressed="${a?.s==='bos'}" data-act="st" data-v="bos">Boşum</button><button class="chip" aria-pressed="${a?.s==='dolu'}" data-act="st" data-v="dolu">Doluyum</button><button class="chip" aria-pressed="${!a}" data-act="st" data-v="">Belirtmedim</button></div>`+
-   (a?`<div class="row"><span class="muted">${ico('saat')}</span>${['Sabah','Öğlen','Akşam','Tüm gün'].map(v=>ch('t',v,a.t)).join('')}<span class="muted">isteğe bağlı</span></div>
-   <div class="row"><span class="muted">${ico('pin')}</span>${['İstanbul','Şehir dışı','Yurt dışı'].map(v=>ch('loc',v,a.loc)).join('')}</div>`:'');
-  const grid=`<div class="scroll"><table><tr><th>Ekip</th>${week.map((d,i)=>`<th>${GUN[i]} ${d.getDate()}</th>`).join('')}</tr>${S.profiles.map(m=>`<tr><td><strong>${esc(m.name)}</strong><div class="muted">${esc(S.notes[m.id]||'')}</div></td>${week.map(d=>{const x=S.avail[m.id]?.[iso(d)];return `<td>${x?`<span class="cell ${x.s}">${x.s==='bos'?esc(x.t||'Boş'):'Dolu'}</span>${x.loc!=='İstanbul'?`<div class="muted" style="font-size:10px">${esc(x.loc)}</div>`:''}`:'<span class="cell none">·</span>'}</td>`}).join('')}</tr>`).join('')}</table></div>`;
+   (a?`${a.s==='bos'?`<div class="row"><span class="muted">${ico('saat')}</span><select id="slot" aria-label="Saat" style="width:auto"><option value="">Tüm gün</option>${hrs.map(x=>`<option value="${x}" ${a.t===x?'selected':''}>${x} sonrası</option>`).join('')}${a.t&&!hrs.includes(a.t)?`<option selected>${esc(a.t)}</option>`:''}</select><span class="muted">isteğe bağlı</span></div>`:''}
+   <div class="row"><span class="muted">${ico('pin')}</span>${['İstanbul','Şehir dışı','Yurt dışı'].map(v=>ch('loc',v,a.loc)).join('')}</div>
+   <label for="dnote">Bu güne kısa not<input type="text" id="dnote" maxlength="120" placeholder="Örn: Kadıköy tarafındayım, çekime gelebilirim" value="${esc(a.n||'')}"></label>`:'');
+  const grid=`<div class="scroll"><table><tr><th>Ekip</th>${week.map((d,i)=>`<th>${GUN[i]} ${d.getDate()}</th>`).join('')}</tr>${S.profiles.map(m=>`<tr><td><strong>${esc(m.name)}</strong></td>${week.map(d=>{const x=S.avail[m.id]?.[iso(d)];return `<td>${x?`<span class="cell ${x.s}">${x.s==='bos'?esc(slotTxt(x.t)||'Boş'):'Dolu'}</span>${x.loc!=='İstanbul'?`<div class="muted" style="font-size:10px">${esc(x.loc)}</div>`:''}${x.n?`<div class="muted" style="font-size:10px;max-width:120px;margin:auto">${esc(x.n)}</div>`:''}`:'<span class="cell none">·</span>'}</td>`}).join('')}</tr>`).join('')}</table></div>`;
   return `<h2>Bu hafta ne zaman boşsun, ${esc(me().name)}?</h2>
-  <div class="panel"><div class="week">${strip}</div>${detail}
-   <label for="wnote">Haftalık kısa not<input type="text" id="wnote" maxlength="120" placeholder="Örn: Cumartesi çekime gelebilirim" value="${esc(S.notes[uid]||'')}"></label></div>
+  <div class="panel"><div class="week">${strip}</div>${detail}</div>
   <h3>Ekibin haftası</h3><div class="panel">${grid}</div>`},
 takvim(){
-  const ev={},push=(d,o)=>{if(d)(ev[d]??=[]).push(o)};
-  S.jobs.filter(j=>j.status!=='bitti').forEach(j=>push(j.due,{k:'d',t:`Son gün: ${j.brand} ${j.title}`}));
+  const vf=viewFirst(),gs=gridOf(),vm=vf.getMonth(),ev={},push=(d,o)=>{if(d)(ev[d]??=[]).push(o)};
+  S.jobs.filter(j=>j.status!=='bitti').forEach(j=>push(j.due,{k:'d',t:`Son gün: ${j.brand} ${j.title}`+(j.assignee?` · ${M(j.assignee)?.name||''}`:' · henüz alınmadı')}));
   S.gear.forEach(g=>push(g.day,{k:'g',t:(g.status==='yolda'?'Geliyor: ':'İade: ')+g.name}));
-  let cells='';for(let i=0;i<42;i++){const d=add(i,gridStart),k=iso(d);if(i>=35&&d.getMonth()!==T.getMonth())break;
+  const evTxt=x=>(x.brand?x.brand+' · ':'')+x.title+(x.certainty==='tahmini'?' (tahmini)':'');
+  S.events.forEach(x=>{const e0=D(x.start_day),n=x.end_day?Math.max(0,Math.min(60,Math.round((D(x.end_day)-e0)/864e5))):0;for(let i=0;i<=n;i++)push(iso(add(i,e0)),{k:'e',t:evTxt(x)+(x.note?' · '+x.note:'')})});
+  let cells='';for(let i=0;i<42;i++){const d=add(i,gs),k=iso(d);if(i>=35&&d.getMonth()!==vm)break;
     const free=S.profiles.filter(m=>S.avail[m.id]?.[k]?.s==='bos').length;
-    cells+=`<button class="mday ${d.getMonth()!==T.getMonth()?'out':''} ${k===iso(T)?'today':''} ${k===calSel?'sel':''}" data-act="cal" data-v="${k}"><span class="mono">${d.getDate()}</span><span class="dots">${'<span class="dot"></span>'.repeat(free)}${(ev[k]||[]).map(e=>`<span class="dot ${e.k}"></span>`).join('')}</span></button>`}
+    cells+=`<button class="mday ${d.getMonth()!==vm?'out':''} ${k===iso(T)?'today':''} ${k===calSel?'sel':''}" data-act="cal" data-v="${k}"><span class="mono">${d.getDate()}</span><span class="dots">${'<span class="dot"></span>'.repeat(free)}${(ev[k]||[]).map(e=>`<span class="dot ${e.k}"></span>`).join('')}</span></button>`}
   const fr=S.profiles.filter(m=>S.avail[m.id]?.[calSel]?.s==='bos'),es=ev[calSel]||[];
-  return `<h2>${T.toLocaleDateString('tr-TR',{month:'long',year:'numeric'})}</h2>
-  <div class="legend"><span><span class="dot"></span>Boş olan kişi</span><span><span class="dot d"></span>İş son günü</span><span><span class="dot g"></span>Ekipman geliş / iade</span></div>
+  const up=S.events.filter(x=>left(x.end_day||x.start_day)>=0).slice(0,10);
+  const lab={d:['wait','İş'],g:['blue','Ekipman'],e:['purple','Etkinlik']};
+  return `<div class="row"><button class="btn ghost sm" data-act="calnav" data-v="-1" aria-label="Önceki ay">‹</button><h2 style="flex:1;text-align:center">${vf.toLocaleDateString('tr-TR',{month:'long',year:'numeric'})}</h2>${calOff?'<button class="btn ghost sm" data-act="calnav" data-v="0">Bugün</button>':''}<button class="btn ghost sm" data-act="calnav" data-v="1" aria-label="Sonraki ay">›</button></div>
+  <div class="legend"><span><span class="dot"></span>Boş olan kişi</span><span><span class="dot d"></span>İş son günü</span><span><span class="dot g"></span>Ekipman geliş / iade</span><span><span class="dot e"></span>Etkinlik / lansman</span></div>
   <div class="month">${GUN.map(g=>`<div class="hd">${g}</div>`).join('')}${cells}</div>
   <div class="panel"><strong>${D(calSel).toLocaleDateString('tr-TR',{weekday:'long',day:'numeric',month:'long'})}</strong>
-   <div class="list">${fr.map(m=>`<div class="item"><span class="pill ok">Boş</span><div class="main">${esc(m.name)} <span class="muted">${esc(S.avail[m.id][calSel].t)} · ${esc(S.avail[m.id][calSel].loc)}</span></div></div>`).join('')}${es.map(e=>`<div class="item"><span class="pill ${e.k==='d'?'wait':'blue'}">${e.k==='d'?'İş':'Ekipman'}</span><div class="main">${esc(e.t)}</div></div>`).join('')}${!fr.length&&!es.length?'<div class="muted">Bu gün için kayıt yok.</div>':''}</div></div>`},
+   <div class="list">${fr.map(m=>{const x=S.avail[m.id][calSel];return `<div class="item"><span class="pill ok">Boş</span><div class="main">${esc(m.name)} <span class="muted">${esc([slotTxt(x.t),x.loc,x.n].filter(Boolean).join(' · '))}</span></div></div>`}).join('')}${es.map(e=>`<div class="item"><span class="pill ${lab[e.k][0]}">${lab[e.k][1]}</span><div class="main">${esc(e.t)}</div></div>`).join('')}${!fr.length&&!es.length?'<div class="muted">Bu gün için kayıt yok.</div>':''}</div></div>
+  <h3>Yaklaşan etkinlikler</h3><div class="panel"><div class="list">${up.map(x=>`<div class="item"><span class="mono">${fmtY(x.start_day)}${x.end_day&&x.end_day!==x.start_day?' – '+fmtY(x.end_day):''}</span><div class="main"><strong>${esc((x.brand?x.brand+' · ':'')+x.title)}</strong>${x.note?`<div class="muted">${esc(x.note)}</div>`:''}</div><span class="pill ${x.certainty==='tahmini'?'off':'purple'}">${x.certainty==='tahmini'?'Tahmini':'Kesin'}</span></div>`).join('')||`<div class="muted">Etkinlik eklenmedi.${me().is_admin?' Yönetim bölümünden ekleyebilirsin.':''}</div>`}</div></div>`},
 isler(){
-  const subs=[['havuz','Havuz'],['talep','Taleplerim'],['atanan','Atananlar'],['biten','Biten']],adm=me().is_admin;
+  const subs=[['havuz','Bekleyen'],['talep','Taleplerim'],['atanan','Atananlar'],['biten','Biten']],adm=me().is_admin;
+  const edit=j=>adm?`<button class="btn ghost sm" data-act="editjob" data-v="${j.id}">Düzenle</button>`:'';
   let list,html;
-  if(sub==='havuz'){list=S.jobs.filter(j=>j.status==='havuz');html=list.map(j=>jobCard(j,(j.req.includes(uid)?`<span class="pill wait">Onay bekliyor</span><button class="btn ghost sm" data-act="unreq" data-v="${j.id}">Vazgeç</button>`:`<button class="btn" data-act="req" data-v="${j.id}">${ico('check')}Ben alırım</button>`+(j.req.length?`<span class="muted">${j.req.length} talep var</span>`:''))+(adm?`<button class="btn ghost sm" data-act="deljob" data-v="${j.id}" aria-label="İşi sil">${ico('sil')}</button>`:''))).join('')}
+  if(sub==='havuz'){list=S.jobs.filter(j=>j.status==='havuz');html=list.map(j=>jobCard(j,
+    (j.req.includes(uid)?`<span class="pill wait">Onay bekliyor</span><button class="btn ghost sm" data-act="unreq" data-v="${j.id}">Vazgeç</button>`:`<button class="btn" data-act="req" data-v="${j.id}">${ico('check')}Ben alırım</button>`)
+    +(adm?j.req.map(r=>`<button class="btn ok sm" data-act="assign" data-v="${j.id}:${r}">${ico('check')}${nm(r)}: onayla</button>`).join(''):(j.req.length?`<span class="muted">${j.req.length} talep var</span>`:''))
+    +edit(j)+(adm?`<button class="btn ghost sm" data-act="deljob" data-v="${j.id}" aria-label="İşi sil">${ico('sil')}</button>`:''))).join('')}
   else if(sub==='talep'){list=S.jobs.filter(j=>j.req.includes(uid));html=list.map(j=>jobCard(j,j.status==='havuz'?'<span class="pill wait">Onay bekliyor</span>':j.assignee===uid?'<span class="pill ok">Onaylandı, sende</span>':`<span class="pill off">${nm(j.assignee)} üstlendi</span>`)).join('')}
-  else if(sub==='atanan'){list=S.jobs.filter(j=>j.status==='atandi');html=list.map(j=>jobCard(j,`<span class="pill ${j.assignee===uid?'ok':'blue'}">${j.assignee===uid?'Sende':nm(j.assignee)}</span>`+(j.assignee===uid||adm?`<button class="btn ok sm" data-act="done" data-v="${j.id}">${ico('check')}Tamamlandı</button>`:''))).join('')}
+  else if(sub==='atanan'){list=S.jobs.filter(j=>j.status==='atandi');html=list.map(j=>{const mine=j.assignee===uid,can=mine||adm,others=S.profiles.filter(m=>m.id!==j.assignee);
+    let f=`<span class="pill ${mine?'ok':'blue'}">${mine?'Sende':nm(j.assignee)}</span>`;
+    if(j.transfer_to){f+=j.transfer_to===uid?`<button class="btn ok sm" data-act="acctr" data-v="${j.id}">Devri kabul et</button><button class="btn ghost sm" data-act="dectr" data-v="${j.id}">Reddet</button>`:`<span class="pill wait">Devir bekliyor: ${nm(j.transfer_to)}</span>`+(can?`<button class="btn ghost sm" data-act="canceltr" data-v="${j.id}">Devri iptal et</button>`:'')}
+    else if(can){f+=`<button class="btn ok sm" data-act="done" data-v="${j.id}">${ico('check')}Tamamlandı</button>`+(others.length?`<select id="tr-${j.id}" aria-label="Devredilecek kişi" style="width:auto"><option value="">Devret…</option>${others.map(m=>`<option value="${m.id}">${esc(m.name)}</option>`).join('')}</select><button class="btn ghost sm" data-act="transfer" data-v="${j.id}">Devret</button>`:'')}
+    return jobCard(j,f+edit(j))}).join('')}
   else{list=S.jobs.filter(j=>j.status==='bitti');html=list.map(j=>jobCard(j,`<span class="pill off">Bitti · ${nm(j.assignee)}</span>`)).join('')}
   return `<h2>İşler</h2><div class="row">${subs.map(([k,l])=>`<button class="chip" aria-pressed="${sub===k}" data-act="sub" data-v="${k}">${l}</button>`).join('')}</div>
-  ${list.length?`<div class="cards">${html}</div>`:`<div class="empty">${sub==='havuz'?(adm?'Havuz boş. Yönetim bölümünden ilk işi aç.':'Havuzda bekleyen iş yok.'):'Bu bölümde iş yok.'}</div>`}`},
+  ${list.length?`<div class="cards">${html}</div>`:`<div class="empty">${sub==='havuz'?(adm?'Bekleyen iş yok. Yönetim bölümünden ilk işi aç.':'Bekleyen iş yok.'):'Bu bölümde iş yok.'}</div>`}`},
 ekipman(){
   const adm=me().is_admin;
   const sec=(st,title,lbl)=>{const l=S.gear.filter(g=>g.status===st);return `<h3>${title}</h3><div class="panel"><div class="list">${l.map(g=>`<div class="item"><div class="caticon">${ico(g.category)}</div><div class="main"><strong>${esc(g.name)}</strong><div class="muted">${g.status==='yolda'?'Yolda':g.holder?nm(g.holder)+' üzerinde':'Kimde olduğu girilmedi'}</div></div>${g.day?`<span class="due mono ${left(g.day)<=5?'soon':''}">${ico('saat')}${lbl} ${fmt(g.day)}</span>`:''}${adm?(st==='yolda'?`<button class="btn ghost sm" data-act="arrived" data-v="${g.id}">Geldi</button>`:'')+`<button class="btn ghost sm" data-act="delgear" data-v="${g.id}" aria-label="Ekipmanı sil">${ico('sil')}</button>`:''}</div>`).join('')||'<div class="muted">Kayıt yok.</div>'}</div></div>`};
-  return `<h2>Ekipman</h2>${sec('elimizde','Elimizde','İade')}${sec('yolda','Yakında gelecek','Geliş')}`},
+  return `<h2>Ekipman</h2>${sec('elimizde','Envanterde','İade')}${sec('yolda','Yakında gelecek','Geliş')}`},
 ekip(){
   const m0=me();
-  return `<h2>Ekip</h2><div class="cards">${S.profiles.map(m=>{const f=freeDays(m.id),n=S.jobs.filter(j=>j.status==='atandi'&&j.assignee===m.id).length;return `<div class="job"><div class="top"><div class="avatar">${esc((m.name||'?')[0])}</div><div><div class="bname">${esc(m.name)}</div><div class="muted">${esc(m.role||'Rol girilmedi')}</div></div></div><div class="row">${m.org?`<span class="pill blue">${esc(m.org)}</span>`:''}${m.is_admin?'<span class="pill wait">Yönetici</span>':''}</div><div class="muted">Bu hafta boş: ${f.join(', ')||'işaretlemedi'}<br>Üzerindeki iş: ${n}</div></div>`}).join('')}</div>
+  return `<h2>Ekip</h2><div class="cards">${S.profiles.map(m=>{const f=freeDays(m.id),n=S.jobs.filter(j=>j.status==='atandi'&&j.assignee===m.id).length;return `<div class="job"><div class="top"><div class="avatar">${esc((m.name||'?')[0])}</div><div><div class="bname">${esc(m.name)}</div><div class="muted">${esc(m.role||'Rol girilmedi')}</div></div></div><div class="row">${m.org?`<span class="pill blue">${esc(m.org)}</span>`:''}</div><div class="muted">Bu hafta boş: ${f.join(', ')||'işaretlemedi'}<br>Üzerindeki iş: ${n}</div></div>`}).join('')}</div>
   <h3>Profilim</h3><div class="panel"><form class="grid" id="fprofile">
    <label for="pn">Ad<input type="text" id="pn" required maxlength="40" value="${esc(m0.name)}"></label>
    <label for="pr">Rol<input type="text" id="pr" maxlength="40" placeholder="Editör, lens uzmanı…" value="${esc(m0.role)}"></label>
    <label for="po">Çalıştığın yer<input type="text" id="po" maxlength="40" placeholder="GZT, Sigma…" value="${esc(m0.org)}"></label>
    <button class="btn">Kaydet</button></form></div>`},
 yonetim(){
-  const pend=S.jobs.filter(j=>j.status==='havuz'&&j.req.length),opt=a=>a.map(x=>`<option>${x}</option>`).join('');
+  const pend=S.jobs.filter(j=>j.status==='havuz'&&j.req.length),ej=editJob&&S.jobs.find(j=>j.id===editJob);
   const waiting=S.invites.filter(i=>!S.profiles.some(p=>p.email.toLowerCase()===i.email.toLowerCase()));
   return `<h2>Yönetim</h2>
-  <h3>Onay bekleyen talepler</h3><div class="panel"><div class="list">${pend.map(j=>j.req.map(r=>`<div class="item"><div class="caticon">${ico(j.category)}</div><div class="main"><strong>${esc(j.brand)} · ${esc(j.title)}</strong><div class="muted">${nm(r)} istiyor · bu hafta boş: ${freeDays(r).join(', ')||'işaretlemedi'}</div></div><button class="btn sm" data-act="assign" data-v="${j.id}:${r}">Bu kişiye ata</button></div>`).join('')).join('')||'<div class="muted">Bekleyen talep yok.</div>'}</div></div>
-  <h3>Yeni iş aç</h3><div class="panel"><form class="grid" id="fjob">
-   <label for="jb">Marka<input type="text" id="jb" required placeholder="Sony"></label>
-   <label for="jc">Kategori<select id="jc"><option value="kamera">Kamera</option><option value="lens">Lens</option><option value="telefon">Telefon</option><option value="bilgisayar">Bilgisayar</option><option value="drone">Drone</option><option value="kurgu">Kurgu</option></select></label>
-   <label for="jt">Tür<select id="jt">${opt(['Ürün incelemesi','Haber','Reels','Shorts','YouTube videosu','Video kurgu','Story','Post'])}</select></label>
-   <label for="jn">Başlık<input type="text" id="jn" required placeholder="İlk bakış videosu"></label>
-   <label for="jd">Son gün<input type="date" id="jd" required value="${iso(add(7))}"></label>
-   <label for="je">Ambargo (isteğe bağlı)<input type="date" id="je"></label>
-   <button class="btn">${ico('plus')}Havuza ekle</button></form></div>
+  <h3>Onay bekleyen talepler</h3><div class="panel"><div class="list">${pend.map(j=>j.req.map(r=>`<div class="item"><div class="caticon">${ico(j.category)}</div><div class="main"><strong>${esc(j.brand)} · ${esc(j.title)}</strong><div class="muted">${nm(r)} istiyor · bu hafta boş: ${freeDays(r).join(', ')||'işaretlemedi'}</div></div><button class="btn ok sm" data-act="assign" data-v="${j.id}:${r}">Onayla ve ata</button></div>`).join('')).join('')||'<div class="muted">Bekleyen talep yok.</div>'}</div></div>
+  <h3>${ej?'İşi düzenle':'Yeni iş aç'}</h3><div class="panel"><form class="grid" id="fjob">
+   <label for="jb">Marka<input type="text" id="jb" required placeholder="Sony" value="${esc(ej?.brand)}"></label>
+   <label for="jc">Kategori<select id="jc">${[['kamera','Kamera'],['lens','Lens'],['telefon','Telefon'],['bilgisayar','Bilgisayar'],['drone','Drone'],['kurgu','Kurgu']].map(([v,l])=>`<option value="${v}" ${ej?.category===v?'selected':''}>${l}</option>`).join('')}</select></label>
+   <label for="jt">Tür<select id="jt">${['Ürün incelemesi','Haber','Reels','Shorts','YouTube videosu','Video kurgu','Story','Post'].map(x=>`<option ${ej?.type===x?'selected':''}>${x}</option>`).join('')}</select></label>
+   <label for="jn">Başlık<input type="text" id="jn" required placeholder="İlk bakış videosu" value="${esc(ej?.title)}"></label>
+   <label for="jd">Son gün<input type="date" id="jd" required value="${ej?.due||iso(add(7))}"></label>
+   <label for="je">Ambargo (isteğe bağlı)<input type="date" id="je" value="${ej?.embargo||''}"></label>
+   <button class="btn">${ej?'Değişiklikleri kaydet':ico('plus')+'Bekleyenlere ekle'}</button>${ej?'<button type="button" class="btn ghost" data-act="canceledit">Vazgeç</button>':''}</form></div>
+  <h3>Etkinlik / lansman ekle</h3><div class="panel">
+   <div class="list">${S.events.filter(x=>left(x.end_day||x.start_day)>=0).map(x=>`<div class="item"><span class="mono">${fmtY(x.start_day)}${x.end_day&&x.end_day!==x.start_day?' – '+fmtY(x.end_day):''}</span><div class="main"><strong>${esc((x.brand?x.brand+' · ':'')+x.title)}</strong></div><span class="pill ${x.certainty==='tahmini'?'off':'purple'}">${x.certainty==='tahmini'?'Tahmini':'Kesin'}</span><button class="btn ghost sm" data-act="delev" data-v="${x.id}" aria-label="Etkinliği sil">${ico('sil')}</button></div>`).join('')}</div>
+   <form class="grid" id="fev">
+   <label for="et">Etkinlik<input type="text" id="et" required placeholder="iPhone tanıtımı"></label>
+   <label for="eb">Marka (isteğe bağlı)<input type="text" id="eb" placeholder="Apple"></label>
+   <label for="es">Başlangıç<input type="date" id="es" required></label>
+   <label for="ee">Bitiş (isteğe bağlı)<input type="date" id="ee"></label>
+   <label for="ec">Tarih<select id="ec"><option value="kesin">Kesin</option><option value="tahmini">Tahmini</option></select></label>
+   <label for="en">Not (isteğe bağlı)<input type="text" id="en" maxlength="120" placeholder="Genelde eylülün ikinci haftası"></label>
+   <button class="btn">${ico('plus')}Takvime ekle</button></form>
+   <div class="muted">Etkinlikten 1 hafta ve 1 gün önce herkese panel bildirimi gider.</div></div>
   <h3>Ekipman ekle</h3><div class="panel"><form class="grid" id="fgear">
    <label for="gn">Ürün<input type="text" id="gn" required placeholder="Fujifilm X-T5"></label>
    <label for="gc">Kategori<select id="gc"><option value="kamera">Kamera</option><option value="lens">Lens</option><option value="telefon">Telefon</option><option value="bilgisayar">Bilgisayar</option><option value="drone">Drone</option></select></label>
-   <label for="gs">Durum<select id="gs"><option value="elimizde">Elimizde</option><option value="yolda">Yolda</option></select></label>
+   <label for="gs">Durum<select id="gs"><option value="elimizde">Envanterde</option><option value="yolda">Yolda</option></select></label>
    <label for="gw">Kimde<select id="gw"><option value="">Seçilmedi</option>${S.profiles.map(m=>`<option value="${m.id}">${esc(m.name)}</option>`).join('')}</select></label>
    <label for="gd">İade / geliş tarihi<input type="date" id="gd"></label>
    <button class="btn">${ico('plus')}Ekle</button></form></div>
@@ -296,14 +325,14 @@ function render(){
   $('bell').innerHTML=ico('zil')+(unread?`<em>${unread}</em>`:'');
   $('notes').innerHTML=`<h3>Bildirimler</h3><div class="list">${S.notifs.map(x=>`<div class="item"><div class="main">${x.read?'':'<span class="pill wait">Yeni</span> '}${esc(x.body)}<div class="muted">${new Date(x.created_at).toLocaleString('tr-TR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div></div></div>`).join('')||'<div class="muted">Bildirim yok.</div>'}</div>`;
   const act=document.activeElement;
-  if(act&&act.id==='wnote'&&tab==='hafta')return; /* yazarken ekrani yenileme */
+  if(act&&act.id==='dnote'&&tab==='hafta')return; /* yazarken ekrani yenileme */
   $('main').innerHTML=V[tab]();
 }
 
 /* ---------- islemler ---------- */
 async function saveDay(){
   const a=S.avail[uid]?.[selDay];render();
-  const r=a?await sb.from('availability').upsert({user_id:uid,day:selDay,status:a.s,slot:a.t||'',loc:a.loc||'İstanbul'})
+  const r=a?await sb.from('availability').upsert({user_id:uid,day:selDay,status:a.s,slot:a.s==='bos'?(a.t||''):'',loc:a.loc||'İstanbul',note:a.n||''})
            :await sb.from('availability').delete().eq('user_id',uid).eq('day',selDay);
   if(r.error){fail(r.error);load()}
 }
@@ -317,8 +346,12 @@ document.addEventListener('click',async e=>{
   if(a==='tab'){tab=v;$('notes').hidden=true;try{history.replaceState(null,'','#'+v)}catch(_){}return render()}
   if(a==='sub'){sub=v;return render()}
   if(a==='cal'){calSel=v;return render()}
-  if(a==='day'){selDay=v;if(!my[v]){my[v]={s:'bos',t:'',loc:'İstanbul'};return saveDay()}return render()}
-  if(a==='st'){if(!v)delete my[selDay];else my[selDay]={t:'',loc:'İstanbul',...my[selDay],s:v};return saveDay()}
+  if(a==='calnav'){calOff=v==='0'?0:calOff+ +v;return load()}
+  if(a==='editjob'){editJob=+v;tab='yonetim';render();setTimeout(()=>$('fjob')?.scrollIntoView({block:'center'}),0);return}
+  if(a==='canceledit'){editJob=null;return render()}
+  if(a==='transfer'&&!$('tr-'+v)?.value)return toast('Önce kime devredeceğini seç.');
+  if(a==='day'){if(selDay===v&&my[v]){my[v].s=my[v].s==='bos'?'dolu':'bos';return saveDay()}selDay=v;if(!my[v]){my[v]={s:'bos',t:'',loc:'İstanbul',n:''};return saveDay()}return render()}
+  if(a==='st'){if(!v)delete my[selDay];else my[selDay]={t:'',loc:'İstanbul',n:'',...my[selDay],s:v};return saveDay()}
   if(a==='t'){my[selDay].t=my[selDay].t===v?'':v;return saveDay()}
   if(a==='loc'){my[selDay].loc=v;return saveDay()}
   b.disabled=true;
@@ -326,6 +359,11 @@ document.addEventListener('click',async e=>{
   else if(a==='unreq')r=await sb.from('job_requests').delete().eq('job_id',+v).eq('user_id',uid);
   else if(a==='assign'){const[id,u]=v.split(':');r=await sb.rpc('assign_job',{p_job:+id,p_user:u})}
   else if(a==='done')r=await sb.rpc('complete_job',{p_job:+v});
+  else if(a==='transfer')r=await sb.rpc('offer_transfer',{p_job:+v,p_user:$('tr-'+v).value});
+  else if(a==='canceltr')r=await sb.rpc('offer_transfer',{p_job:+v,p_user:null});
+  else if(a==='acctr')r=await sb.rpc('answer_transfer',{p_job:+v,p_accept:true});
+  else if(a==='dectr')r=await sb.rpc('answer_transfer',{p_job:+v,p_accept:false});
+  else if(a==='delev')r=await sb.from('events').delete().eq('id',+v);
   else if(a==='deljob')r=await sb.from('jobs').delete().eq('id',+v);
   else if(a==='arrived')r=await sb.from('gear').update({status:'elimizde'}).eq('id',+v);
   else if(a==='delgear')r=await sb.from('gear').delete().eq('id',+v);
@@ -336,19 +374,22 @@ document.addEventListener('click',async e=>{
   load();
 });
 document.addEventListener('change',async e=>{
-  if(e.target.id==='wnote'){const note=e.target.value.trim();S.notes[uid]=note;
-    const r=await sb.from('week_notes').upsert({user_id:uid,week_start:iso(mon),note});if(r.error)fail(r.error);else toast('Not kaydedildi.')}
+  const a=S.avail[uid]?.[selDay];if(!a)return;
+  if(e.target.id==='slot'){a.t=e.target.value;saveDay()}
+  if(e.target.id==='dnote'){a.n=e.target.value.trim();await saveDay();toast('Not kaydedildi.')}
 });
 document.addEventListener('submit',async e=>{
   e.preventDefault();const f=e.target.id,g=id=>$(id).value.trim();let r;
   if(f==='authForm')return doAuth();
-  if(f==='fjob')r=await sb.from('jobs').insert({brand:g('jb'),category:g('jc'),type:g('jt'),title:g('jn'),due:g('jd'),embargo:g('je')||null});
+  if(f==='fjob'){const row={brand:g('jb'),category:g('jc'),type:g('jt'),title:g('jn'),due:g('jd'),embargo:g('je')||null};
+    r=editJob?await sb.from('jobs').update(row).eq('id',editJob):await sb.from('jobs').insert(row)}
+  if(f==='fev')r=await sb.from('events').insert({title:g('et'),brand:g('eb'),start_day:g('es'),end_day:g('ee')||null,certainty:g('ec'),note:g('en')});
   if(f==='fgear'){const st=g('gs');r=await sb.from('gear').insert({name:g('gn'),category:g('gc'),status:st,holder:st==='elimizde'&&g('gw')?g('gw'):null,day:g('gd')||null})}
   if(f==='finv')r=await sb.from('invites').insert({email:g('ie').toLowerCase(),name:g('in'),org:g('io'),is_admin:!!g('ia')});
   if(f==='fprofile')r=await sb.from('profiles').update({name:g('pn'),role:g('pr'),org:g('po')}).eq('id',uid);
   if(r?.error)return fail(r.error);
-  toast(f==='fjob'?'İş havuza eklendi.':f==='fgear'?'Ekipman eklendi.':f==='finv'?'Davet listesine eklendi.':'Kaydedildi.');
-  if(f==='fjob'){tab='isler';sub='havuz'} if(f==='fgear')tab='ekipman';
+  toast(f==='fjob'?(editJob?'İş güncellendi.':'Bekleyen işlere eklendi.'):f==='fev'?'Etkinlik takvime eklendi.':f==='fgear'?'Ekipman eklendi.':f==='finv'?'Davet listesine eklendi.':'Kaydedildi.');
+  if(f==='fjob'){tab='isler';if(!editJob)sub='havuz';editJob=null} if(f==='fgear')tab='ekipman';
   load();
 });
 
