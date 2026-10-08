@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Updated Ekip">
-<meta name="theme-color" content="#0A111F">
+<meta name="theme-color" content="#1B1D21">
 <link rel="apple-touch-icon" href="../icon-180.png">
 <link rel="manifest" href="manifest.json">
 <title>Updated Ekip Paneli</title>
@@ -20,9 +20,9 @@
   --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
 }
 @media (prefers-color-scheme: dark){ :root{
-  --bg:#0A111F; --surface:#121B2E; --sunk:#1A2540; --ink:#E9EEF8; --muted:#94A2BC; --line:#25324E;
+  --bg:#1B1D21; --surface:#26292F; --sunk:#31353C; --ink:#F1F3F6; --muted:#A8AFBA; --line:#3B4049;
   --blue:#6A98F8; --blue-soft:#1B2C55; --orange:#FF8A47; --orange-soft:#44240F;
-  --ok:#3DD68C; --ok-soft:#113524; --busy:#8794AD; --busy-soft:#1F2A42; --on-accent:#0A111F; --err:#FF8A80; color-scheme:dark } }
+  --ok:#3DD68C; --ok-soft:#113524; --busy:#9AA1AD; --busy-soft:#353941; --on-accent:#14161A; --err:#FF8A80; color-scheme:dark } }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html{padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
@@ -276,11 +276,12 @@ yonetim(){
    <button class="btn">${ico('plus')}Ekle</button></form></div>
   <h3>Üyeler</h3><div class="panel"><div class="list">
    ${S.profiles.map(m=>`<div class="item"><div class="main"><strong>${esc(m.name)}</strong> <span class="muted">${esc(m.email)}</span></div>${m.is_admin?'<span class="pill wait">Yönetici</span>':''}${m.id!==uid?`<button class="btn ghost sm" data-act="admin" data-v="${m.id}">${m.is_admin?'Yöneticiliği kaldır':'Yönetici yap'}</button>`:''}</div>`).join('')}
-   ${waiting.map(i=>`<div class="item"><div class="main"><strong>${esc(i.name)}</strong> <span class="muted">${esc(i.email)}</span></div><span class="pill off">Davet edildi, henüz kaydolmadı</span><button class="btn ghost sm" data-act="delinv" data-v="${esc(i.email)}" aria-label="Daveti sil">${ico('sil')}</button></div>`).join('')}</div>
+   ${waiting.map(i=>`<div class="item"><div class="main"><strong>${esc(i.name)}</strong> <span class="muted">${esc(i.email)}</span></div>${i.is_admin?'<span class="pill wait">Yönetici olacak</span>':''}<span class="pill off">Davet edildi, henüz kaydolmadı</span><button class="btn ghost sm" data-act="delinv" data-v="${esc(i.email)}" aria-label="Daveti sil">${ico('sil')}</button></div>`).join('')}</div>
    <form class="grid" id="finv">
     <label for="ie">E-posta<input type="email" id="ie" required placeholder="uye@ornek.com"></label>
     <label for="in">Ad<input type="text" id="in" required maxlength="40"></label>
     <label for="io">Çalıştığı yer<input type="text" id="io" maxlength="40" placeholder="GZT, Sigma…"></label>
+    <label for="ia">Yetki<select id="ia"><option value="">Üye</option><option value="1">Yönetici</option></select></label>
     <button class="btn">${ico('plus')}Davet listesine ekle</button></form>
    <div class="muted">Eklediğin kişiye panelin adresini gönder. Bu e-postayla "Hesabını oluştur" diyerek kendi şifresini belirler.</div></div>
   <h3>Hatırlatma</h3><div class="panel"><div class="row"><div class="grow">Bu hafta müsaitliğini işaretlemeyenlere panel bildirimi gönder.</div><button class="btn ghost" data-act="remind">${ico('zil')}Şimdi gönder</button></div></div>`}
@@ -343,7 +344,7 @@ document.addEventListener('submit',async e=>{
   if(f==='authForm')return doAuth();
   if(f==='fjob')r=await sb.from('jobs').insert({brand:g('jb'),category:g('jc'),type:g('jt'),title:g('jn'),due:g('jd'),embargo:g('je')||null});
   if(f==='fgear'){const st=g('gs');r=await sb.from('gear').insert({name:g('gn'),category:g('gc'),status:st,holder:st==='elimizde'&&g('gw')?g('gw'):null,day:g('gd')||null})}
-  if(f==='finv')r=await sb.from('invites').insert({email:g('ie').toLowerCase(),name:g('in'),org:g('io')});
+  if(f==='finv')r=await sb.from('invites').insert({email:g('ie').toLowerCase(),name:g('in'),org:g('io'),is_admin:!!g('ia')});
   if(f==='fprofile')r=await sb.from('profiles').update({name:g('pn'),role:g('pr'),org:g('po')}).eq('id',uid);
   if(r?.error)return fail(r.error);
   toast(f==='fjob'?'İş havuza eklendi.':f==='fgear'?'Ekipman eklendi.':f==='finv'?'Davet listesine eklendi.':'Kaydedildi.');
