@@ -271,6 +271,7 @@ ekip(){
    <label for="pn">Ad<input type="text" id="pn" required maxlength="40" value="${esc(m0.name)}"></label>
    <label for="pr">Rol<input type="text" id="pr" maxlength="40" placeholder="Editör, lens uzmanı…" value="${esc(m0.role)}"></label>
    <label for="po">Çalıştığın yer<input type="text" id="po" maxlength="40" placeholder="GZT, Sigma…" value="${esc(m0.org)}"></label>
+   <label for="pe">E-posta bildirimi<select id="pe"><option value="1" ${m0.notify_email?'selected':''}>Açık</option><option value="" ${m0.notify_email?'':'selected'}>Kapalı</option></select></label>
    <button class="btn">Kaydet</button></form></div>`},
 yonetim(){
   const pend=S.jobs.filter(j=>j.status==='havuz'&&j.req.length),ej=editJob&&S.jobs.find(j=>j.id===editJob);
@@ -386,7 +387,7 @@ document.addEventListener('submit',async e=>{
   if(f==='fev')r=await sb.from('events').insert({title:g('et'),brand:g('eb'),start_day:g('es'),end_day:g('ee')||null,certainty:g('ec'),note:g('en')});
   if(f==='fgear'){const st=g('gs');r=await sb.from('gear').insert({name:g('gn'),category:g('gc'),status:st,holder:st==='elimizde'&&g('gw')?g('gw'):null,day:g('gd')||null})}
   if(f==='finv')r=await sb.from('invites').insert({email:g('ie').toLowerCase(),name:g('in'),org:g('io'),is_admin:!!g('ia')});
-  if(f==='fprofile')r=await sb.from('profiles').update({name:g('pn'),role:g('pr'),org:g('po')}).eq('id',uid);
+  if(f==='fprofile')r=await sb.from('profiles').update({name:g('pn'),role:g('pr'),org:g('po'),notify_email:!!g('pe')}).eq('id',uid);
   if(r?.error)return fail(r.error);
   toast(f==='fjob'?(editJob?'İş güncellendi.':'Bekleyen işlere eklendi.'):f==='fev'?'Etkinlik takvime eklendi.':f==='fgear'?'Ekipman eklendi.':f==='finv'?'Davet listesine eklendi.':'Kaydedildi.');
   if(f==='fjob'){tab='isler';if(!editJob)sub='havuz';editJob=null} if(f==='fgear')tab='ekipman';
